@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Sale</title>
+</head>
+<body>
+    <list>
+        {% for product in products %}
+            <dialog id="{{ product.product_id }}">
+                {% for category in categories %}
+                    {% if category.product_id == product.pk %}
+                        <p>{{ category.category_name }} ----- Php {{ category.price }}</p>
+                        <button type="button" onclick="decrementQuantity('{{ category.pk }}')">-</button>
+                        <input type="number" id="quantity-{{ category.pk }}" name="quantity" 
+                        data-name="{{ category.category_name}}" data-price="{{ category.price }}" min="0" max="99" value="0" readonly>
+                        <button type="button" onclick="incrementQuantity('{{ category.pk }}')">+</button>
+                    {% endif %}
+                {% endfor %}
+                <br><br>
+                <button type="button" onclick="collectSelectedItems('{{ product.product_id }}')">Add Item(s)</button>
+                <button type="button" onclick="document.getElementById('{{ product.product_id }}').close()">Nevermind</button>
+            </dialog>
+
+            <p>{{ product.name }}</p>
+            <button type="button" onclick="document.getElementById('{{ product.product_id }}').showModal()">View</button>
+        {% endfor %}
+    </list>
+    <br><br>
+    <div id="order-summary"></div>
+    <br><br>
+    <button type="button" onclick="submitSale()">Create Sale</button>
+    <script>
+        const csrfToken = '{{ csrf_token }}';
+        let selectedItems = [];
+        const inputs = document.querySelectorAll('input[name="quantity"]');
+        inputs.forEach(input => input.value = 0);
+
+        function decrementQuantity(categoryId){
+            const selected = document.getElementById(`quantity-${categoryId}`);
+            let quantity = parseInt(selected.value, 10);
+            if (quantity > parseInt(selected.min)) {
+                quantity--;
+                selected.value = quantity;
+            }
+        }
+        function incrementQuantity(categoryId){
+            const selected = document.getElementById(`quantity-${categoryId}`);
+            let quantity = parseInt(selected.value, 10);
+            if (quantity < parseInt(selected.max)) {
+                quantity++;
+                selected.value = quantity;
+            }
+        }
+        function collectSelectedItems(dialogId) {
+            inputs.forEach(input => {
+                const quantity = parseInt(input.value, 10);
+                const categoryId = input.id.replace('quantity-', '');
+                const categoryName = input.dataset.name;
+                const price = parseFloat(input.dataset.price);
+
+                const index = selectedItems.findIndex(item => item.categoryId === categoryId);
+                if (index > -1) {
+                    if (quantity > 0) {
+                        selectedItems[index].quantity = quantity;
+                    }
+                    else {
+                        selectedItems.splice(index, 1);
+                    }
+                }
+                else if (quantity > 0) {
+                    selectedItems.push({ categoryId, categoryName, price, quantity });
+                    }
+                });
+                
+            console.log('Selected items: ', selectedItems);
+            document.getElementById(dialogId).close();
+            
+            let summary = 'Order Summary:\n';
+            let orderTotal = 0;
+            selectedItems.forEach(item => {
+                const total = item.quantity * item.price;
+                orderTotal += total;
+                summary += `${item.categoryName}: ${item.quantity} x Php ${item.price.toFixed(2)} = Php ${total.toFixed(2)}\n`;
+            });
+            if (selectedItems.length === 0) {
+                summary = 'No items selected'
+            }
+            else {
+                summary += `\nTotal: Php ${orderTotal.toFixed(2)}`;
+            document.getElementById('order-summary').innerText = summary;
+            }
+        }
+        function submitSale() {
+            if (selectedItems.length == 0) {
+                alert('No items selected.')
+                return;
+            }
+
+            createSaleUrl = "{% url 'create_sale' %}";
+            fetch(createSaleUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken' : csrfToken,
+                },
+                body: JSON.stringify(selectedItems)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == 'success') {
+                    alert('Sale created successfully!');
+                    selectedItems = [];
+                    inputs.forEach(input => input.value = 0);
+                    document.getElementById('order-summary').innerText = '';
+                } else {
+                    alert('Error creating sale: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error sending data: ', error)
+            });
+        }
+    </script>
+</body>
+</html>
