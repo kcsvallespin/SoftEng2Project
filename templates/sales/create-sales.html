@@ -1,0 +1,45 @@
+{% extends "_base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% block title %}Create Sale{% endblock title %}
+
+{% block content %}
+<p>Logged in as <strong>{{ request.user.username }}</strong> ({{ request.user.email }})</p>
+<p>Are you a staff member?</p>
+{% if request.user.is_staff %}
+    <p>Yes, you are a staff member.</p>
+{% else %}
+    <p>No, you are not a staff member.</p>
+{% endif %}
+<ul>
+    {% for product in products %}
+        <dialog id="{{ product.product_id }}">
+            {% for category in product.categories_set.all %}
+                    <p>{{ category.category_name }} ----- Php {{ category.price }}</p>
+                    <button type="button" onclick="decrementQuantity('{{ category.pk }}')">-</button>
+                    <input type="number" id="quantity-{{ category.pk }}" name="quantity" 
+                    data-name="{{ category.category_name}}" data-price="{{ category.price }}" min="0" max="99" value="0" readonly>
+                    <button type="button" onclick="incrementQuantity('{{ category.pk }}')">+</button>
+            {% endfor %}
+            <br><br>
+            <button type="button" onclick="collectSelectedItems('{{ product.product_id }}')">Proceed</button>
+            <button type="button" onclick="document.getElementById('{{ product.product_id }}').close()">Cancel</button>
+        </dialog>
+
+        <li>{{ product.name }}</li>
+        <button type="button" onclick="document.getElementById('{{ product.product_id }}').showModal()">Varieties</button>
+    {% endfor %}
+    </ul>
+<p>Order Summary:</p>
+<div id="order-summary">No items selected</div>
+<br><br>
+<button type="button" onclick="submitSale()">Record Sale</button>
+{% endblock content %}
+{% block javascript %}
+  {{ block.super }}  {# This is a Django template comment #}
+  <script>
+    const createSaleUrl = "{% url 'create_sale' %}";
+  </script>
+  <script src="{% static 'js/sales/create-sales.js' %}"></script>
+{% endblock javascript %}
+
