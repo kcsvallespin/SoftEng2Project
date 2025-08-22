@@ -6,7 +6,7 @@
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
-
+from django.conf import settings
 
 class AccountEmailaddress(models.Model):
     email = models.CharField(unique=True, max_length=254)
@@ -190,7 +190,8 @@ class Saleitems(models.Model):
 class Sales(models.Model):
     sale_id = models.AutoField(primary_key=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    datetime = models.TimeField()
+    datetime = models.DateTimeField(auto_now=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING)
 
     class Meta:
         managed = True
