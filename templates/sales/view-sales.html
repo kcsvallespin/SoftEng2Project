@@ -23,7 +23,7 @@
         <br>
         <button type="button" onclick="document.getElementById('{{ sale.sale_id }}').showModal()">Details</button>
         {% if request.user.is_staff %}
-        <button type="button" onclick="editSale('{{ sale.sale_id }}')">$Edit</button>
+        <button type="button" onclick="editSale('{{ sale.sale_id }}')">Edit</button>
         <button type="button" onclick="deleteSale('{{ sale.sale_id }}')">Delete</button>
         {% endif %}
     </li>
@@ -32,5 +32,9 @@
 {% endblock content %}
 {% block javascript %}
     {{ block.super }}
-    <script src="{% static 'js/sales/view-sale.js' %}"></script>
+    <script>
+        window.django = {deleteSaleUrl: "{% url 'delete_sale' 0 %}".slice(0, -2), csrfToken: "{{ csrf_token }}"
+        };
+    </script>
+    <script src="{% static 'js/sales/view-sales.js' %}"></script>
 {% endblock javascript %}

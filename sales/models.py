@@ -178,7 +178,7 @@ class Products(models.Model):
 class Saleitems(models.Model):
     saleitem_id = models.AutoField(primary_key=True)
     category = models.ForeignKey(Categories, models.DO_NOTHING)
-    sale = models.ForeignKey('Sales', models.DO_NOTHING)
+    sale = models.ForeignKey('Sales', on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.IntegerField()
 
