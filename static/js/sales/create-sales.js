@@ -1,4 +1,5 @@
-const csrfToken = '{{ csrf_token }}';
+const csrfToken = window.django.csrfToken;
+const createSaleUrl = window.django.createSaleUrl;
 let selectedItems = [];
 const inputs = document.querySelectorAll('input[name="quantity"]');
 inputs.forEach(input => input.value = 0);

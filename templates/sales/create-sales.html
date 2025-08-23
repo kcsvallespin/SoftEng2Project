@@ -1,6 +1,5 @@
 {% extends "_base.html" %}
 {% load static %}
-{% load crispy_forms_tags %}
 {% block title %}Create Sale{% endblock title %}
 
 {% block content %}
@@ -38,7 +37,7 @@
 {% block javascript %}
   {{ block.super }}  {# This is a Django template comment #}
   <script>
-    const createSaleUrl = "{% url 'create_sale' %}";
+    window.django = {createSaleUrl: "{% url 'create_sale' %}", csrfToken: "{{ csrf_token }}"};
   </script>
   <script src="{% static 'js/sales/create-sales.js' %}"></script>
 {% endblock javascript %}
