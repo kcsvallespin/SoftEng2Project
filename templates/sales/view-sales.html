@@ -23,8 +23,8 @@
         <br>
         <button type="button" onclick="document.getElementById('{{ sale.sale_id }}').showModal()">Details</button>
         {% if request.user.is_staff %}
-        <button type="button" onclick="editSale('{{ sale.sale_id }}')">Edit</button>
-        <button type="button" onclick="deleteSale('{{ sale.sale_id }}')">Delete</button>
+        <!-- <a href="{% url 'display_sale' sale.sale_id %}">Edit</a> -->
+        <button onclick="deleteSale('{{ sale.sale_id }}')">Delete</button>
         {% endif %}
     </li>
     {% endfor %}
@@ -33,8 +33,11 @@
 {% block javascript %}
     {{ block.super }}
     <script>
-        window.django = {deleteSaleUrl: "{% url 'delete_sale' 0 %}".slice(0, -2), csrfToken: "{{ csrf_token }}"
+        window.view = {
+            deleteSaleUrl: "{% url 'delete_sale' 0 %}".slice(0, -2),
+            fetchSaleUrl: "{ url 'get_sale' 0 %}".slice(0, -2), 
+            csrfToken: "{{ csrf_token }}"
         };
     </script>
-    <script src="{% static 'js/sales/view-sales.js' %}"></script>
+    <script src="{% static 'js/sales/sales.js' %}"></script>
 {% endblock javascript %}

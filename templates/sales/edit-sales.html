@@ -1,0 +1,14 @@
+{% extends "sales/products-list.html" %}
+{% load static %}
+{% block title %}Edit Sale{% endblock title %}
+
+{% block content %}
+    {{ block.super }}
+    <div id="order-summary">
+        {% for item in sale.saleitems_set.all %}
+        <p>{{ item.quantity }}x {{ item.category.category_name}}  ---------- Php {{ item.category.price }}</p>
+        {% endfor %}
+        <p>Total: Php {{ sale.total_price }}</p>
+    </div>
+    <button type="button">Save Changes</button>
+{% endblock content %}
