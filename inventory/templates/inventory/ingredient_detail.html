@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ object.name }}</h1>
+  <ul>
+    <li>Quantity: {{ object.quantity }} {{ object.unit_of_measure }}</li>
+    <li>Expiry Date: {{ object.expiry_date }}</li>
+    <li>Cost per Unit: {{ object.cost_per_unit }}</li>
+    <li>Active: {{ object.active }}</li>
+    <li>Notes: {{ object.notes }}</li>
+    <li>Supplier: {{ object.supplier.supplier_name }}</li>
+  </ul>
+  <a href="{% url 'ingredient-edit' object.pk %}">Edit</a> |
+  <a href="{% url 'ingredient-delete' object.pk %}">Delete</a> |
+  <a href="{% url 'ingredient-list' %}">Back to list</a>
+{% endblock %}

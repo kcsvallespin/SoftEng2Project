@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Stock Out: {{ view.get_object.name }}</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-warning">Remove Stock</button>
+    <a href="{% url 'ingredient-list' %}">Cancel</a>
+  </form>
+{% endblock %}
