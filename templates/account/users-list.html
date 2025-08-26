@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <!-- <label for="user-roles">Filter Users by Roles:</label>
+    <select name="user-roles" id="user-roles">
+        <option value="all" selected>No filter</option>
+        <option value="nonstaff">Standard Users</option>
+        <option value="staff">Staff</option>
+    </select> -->
+    <ul>
+    {% for user in users %}
+        <li>{{ user.username }} ({{ user.email }})</li>
+    {% endfor %}
+    </ul>
+{% endblock content %}
