@@ -10,7 +10,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
+        migrations.RemoveField(
+            model_name='sales',
+            name='datetime',
+        ),
+        migrations.AddField(
             model_name='sales',
             name='datetime',
             field=models.DateTimeField(auto_now=True),

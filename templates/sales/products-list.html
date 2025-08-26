@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<ul>
+    {% for product in products %}
+        <dialog id="{{ product.product_id }}">
+            {% for category in product.categories_set.all %}
+                    <p>{{ category.category_name }} ----- Php {{ category.price }}</p>
+                    <button type="button" onclick="decrementQuantity('{{ category.pk }}')">-</button>
+                    <input type="number" id="quantity-{{ category.pk }}" name="quantity" 
+                    data-name="{{ category.category_name}}" data-price="{{ category.price }}" min="0" max="99" value="0" readonly>
+                    <button type="button" onclick="incrementQuantity('{{ category.pk }}')">+</button>
+            {% endfor %}
+            <br><br>
+            <button type="button" onclick="collectSelectedItems('{{ product.product_id }}')">Proceed</button>
+            <button type="button" onclick="document.getElementById('{{ product.product_id }}').close()">Cancel</button>
+        </dialog>
+
+        <li>{{ product.name }}</li>
+        <button type="button" onclick="document.getElementById('{{ product.product_id }}').showModal()">Varieties</button>
+    {% endfor %}
+    </ul>
+<p>Order Summary:</p>
+
+{% endblock content %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script src="{% static 'js/sales/products-list.js' %}"></script>
+{% endblock javascript %}
+
