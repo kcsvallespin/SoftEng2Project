@@ -3,9 +3,67 @@
 
 {% block title %}Home page{% endblock title %}
 
+<style>
+
+  body {
+    background-color: #dccdc6;
+  }
+
+  span{
+    color: #573d30;
+  }
+</style>
+
+
 {% block content %}
-<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
-  <img src="{% static 'images/lithium.png' %}" class="img-fluid" alt="Lithium logo"/>
-  <p class="lead">A Django starter project with batteries.</p>
+<div class="container">
+  <div class="row" style="min-height: 60vh;">
+    <!-- Left: Welcome Text -->
+    <div class="col-md-6 d-flex align-items-center" style="min-height: 75vh;">
+      <div style="width: 100%;">
+        <div class="text-start">
+          <span style="font-size: 2.25rem; text-align: justify;">Welcome to the</span><br>
+          <span style="font-size:  2.5rem;line-height: 1.1; font-weight: bold; text-align:justify">KYO Coffee POS System</span>
+        </div>
+        <div class="text-start">
+          <span style="font-size: 1.1rem; margin-top: 100px;">A humble, small coffee shop of today.</span>
+        </div>
+      </div>
+    </div>
+    <!-- Right: Horizontal Image Slider -->
+    <div class="col-md-6 d-flex align-items-center">
+      <div id="horizontal-slider" style="width: 100%; height: 350px; overflow: hidden; border-radius: 10px; box-shadow: 0 0 10px #ccc; background: #fff; position: relative;">
+        <div id="slider-inner" style="display: flex; transition: transform 0.7s cubic-bezier(.77,0,.18,1); height: 100%;">
+          {% for i in "1234567891" %}
+            <img src="{% static 'images/' %}{{ forloop.counter }}.jpg" style="width: 100%; height: 350px; object-fit: cover; display: block; flex-shrink: 0;">
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+</body>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const sliderInner = document.getElementById('slider-inner');
+    const images = sliderInner.querySelectorAll('img');
+    const imgCount = images.length;
+    let current = 0;
+
+    setInterval(() => {
+      current = (current + 1) % imgCount;
+      sliderInner.style.transform = `translateX(-${current * sliderInner.clientWidth}px)`;
+    }, 5000);
+
+    // Make sure images fill the slider width
+    function resizeImages() {
+      const sliderWidth = document.getElementById('horizontal-slider').clientWidth;
+      images.forEach(img => {
+        img.style.width = sliderWidth + 'px';
+      });
+    }
+    window.addEventListener('resize', resizeImages);
+    resizeImages();
+  });
+</script>
 {% endblock content %}

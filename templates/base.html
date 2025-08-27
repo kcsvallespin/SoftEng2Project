@@ -21,9 +21,8 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color: #f8f7f4;">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{% url 'home' %}">Lithium</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -34,7 +33,7 @@
             <a class="nav-link active" aria-current="page" href="{% url 'home' %}">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'about' %}">About</a>
+            <!--<a class="nav-link" href="{% url 'about' %}">About</a>-->
           </li>
           {% if user.is_authenticated %}
         <div>
@@ -51,21 +50,39 @@
             </li>
           </ul>
         </div>
-        <div>
-          <ul class="navbar-nav">
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                Inventory
-              </a>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{% url 'ingredient-list' %}">View Ingredients</a></li>
-                <li><a class="dropdown-item" href="{% url 'supplier-list' %}">View Suppliers</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
+          {% if user.is_staff %}
+          <div>
+            <ul class="navbar-nav">
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  Inventory
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="{% url 'ingredient-list' %}">View Ingredients</a></li>
+                  <li><a class="dropdown-item" href="{% url 'supplier-list' %}">View Suppliers</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          {% endif %}
         {% endif %}
+          {% if user.is_staff %}
+          <div>
+            <ul class="navbar-nav">
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  Manage Accounts
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="{% url 'load_users' %}">View Accounts</a></li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+          {% endif %}
+
         </ul>
         {% if user.is_authenticated %}
         <div class="mr-auto">
@@ -103,12 +120,13 @@
     <p>Default content...</p>
     {% endblock content %}
   </div>
-
+  <!---
   <footer class="footer">
     <div class="container">
       <span class="text-muted">Footer...</span>
     </div>
   </footer>
+  -->
 
   {% block javascript %}
   <!-- Bootstrap JavaScript -->
