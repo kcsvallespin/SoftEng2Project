@@ -11,13 +11,6 @@ urlpatterns = [
     path('ingredients/<int:pk>/stock-in/', views.IngredientStockInView.as_view(), name='ingredient-stock-in'),
     path('ingredients/<int:pk>/stock-out/', views.IngredientStockOutView.as_view(), name='ingredient-stock-out'),
 
-    # Supplier URLs
-    path('suppliers/', views.SupplierListView.as_view(), name='supplier-list'),
-    path('suppliers/add/', views.SupplierCreateView.as_view(), name='supplier-add'),
-    path('suppliers/<int:pk>/', views.SupplierDetailView.as_view(), name='supplier-detail'),
-    path('suppliers/<int:pk>/edit/', views.SupplierUpdateView.as_view(), name='supplier-edit'),
-    path('suppliers/<int:pk>/delete/', views.SupplierDeleteView.as_view(), name='supplier-delete'),
-
     # Home page
     path('home/', views.HomePageView.as_view(), name='inventory-home'),
 ]

@@ -60,7 +60,6 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><a class="dropdown-item" href="{% url 'ingredient-list' %}">View Ingredients</a></li>
-                  <li><a class="dropdown-item" href="{% url 'supplier-list' %}">View Suppliers</a></li>
                 </ul>
               </li>
             </ul>
@@ -77,6 +76,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><a class="dropdown-item" href="{% url 'load_users' %}">View Accounts</a></li>
+                  <li><a class="dropdown-item" href="{% url 'account_signup' %}">Create Account</a></li>
                 </ul>
               </li>
             </ul>
@@ -107,7 +107,10 @@
         <div class="mr-auto">
           <form class="form d-flex">
             <a href="{% url 'account_login' %}" class="btn btn-outline-secondary">Log in</a>
+            
             <a href="{% url 'account_signup' %}" class="btn btn-primary ms-2">Sign up</a>
+
+
           </form>
         </div>
         {% endif %}

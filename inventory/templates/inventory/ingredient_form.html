@@ -7,4 +7,17 @@
     <button type="submit" class="btn btn-primary">Save</button>
     <a href="{% url 'ingredient-list' %}">Cancel</a>
   </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Select all number inputs (or use a more specific selector if needed)
+    document.querySelectorAll('input[type="number"]').forEach(function(input) {
+        input.addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = '';
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

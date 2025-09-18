@@ -190,8 +190,12 @@ class Saleitems(models.Model):
 class Sales(models.Model):
     sale_id = models.AutoField(primary_key=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,  # <--- this line
+    )
     datetime = models.DateTimeField(auto_now=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING)
+    # user = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING)
 
     class Meta:
         managed = True

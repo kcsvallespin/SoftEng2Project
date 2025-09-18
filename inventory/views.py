@@ -3,7 +3,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView, FormView
 )
-from .models import Ingredient, Supplier
+from .models import Ingredient
 from .forms import IngredientForm, StockForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
@@ -38,57 +38,48 @@ class IngredientStockInView(StaffRequiredMixin, FormView):
     template_name = 'inventory/ingredient_stock_in.html'
     form_class = StockForm
 
+    def get_object(self):
+        return Ingredient.objects.get(pk=self.kwargs['pk'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['object'] = self.get_object()
+        return context
+
     def form_valid(self, form):
         ingredient = get_object_or_404(Ingredient, pk=self.kwargs['pk'])
         ingredient.quantity += form.cleaned_data['amount']
         ingredient.save()
         return redirect('ingredient-list')
     
-class IngredientStockOutView(StaffRequiredMixin, FormView):
+class IngredientStockOutView(FormView):
     template_name = 'inventory/ingredient_stock_out.html'
     form_class = StockForm
+    success_url = reverse_lazy('ingredient-list')
 
+    def get_object(self):
+        return Ingredient.objects.get(pk=self.kwargs['pk'])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['object'] = self.get_object()
+        return context
+    
     def form_valid(self, form):
-        ingredient = get_object_or_404(Ingredient, pk=self.kwargs['pk'])
+        ingredient = self.get_object()
         amount = form.cleaned_data['amount']
+        if amount > ingredient.quantity:
+            form.add_error('amount', f'Cannot stock out more than current amount ({ingredient.quantity}).')
+            return self.form_invalid(form)
         if ingredient.quantity >= amount:
             ingredient.quantity -= amount
             ingredient.save()
-        # Optionally, handle insufficient stock here
-        return redirect('ingredient-list')
+        return super().form_valid(form)
 
 class IngredientDeleteView(StaffRequiredMixin, DeleteView):
     model = Ingredient
     template_name = 'inventory/ingredient_confirm_delete.html'
     success_url = reverse_lazy('ingredient-list')
-
-# Supplier Views
-class SupplierListView(StaffRequiredMixin, ListView):
-    model = Supplier
-    class Meta:
-        db_table = 'suppliers'
-    template_name = 'inventory/supplier_list.html'
-
-class SupplierDetailView(StaffRequiredMixin, DetailView):
-    model = Supplier
-    template_name = 'inventory/supplier_detail.html'
-
-class SupplierCreateView(StaffRequiredMixin, CreateView):
-    model = Supplier
-    fields = '__all__'
-    template_name = 'inventory/supplier_form.html'
-    success_url = reverse_lazy('supplier-list')
-
-class SupplierUpdateView(StaffRequiredMixin, UpdateView):
-    model = Supplier
-    fields = '__all__'
-    template_name = 'inventory/supplier_form.html'
-    success_url = reverse_lazy('supplier-list')
-
-class SupplierDeleteView(StaffRequiredMixin, DeleteView):
-    model = Supplier
-    template_name = 'inventory/supplier_confirm_delete.html'
-    success_url = reverse_lazy('supplier-list')
 
 class HomePageView(StaffRequiredMixin, TemplateView):
     template_name = 'inventory/home.html'

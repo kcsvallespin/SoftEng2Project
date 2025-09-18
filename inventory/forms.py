@@ -11,3 +11,10 @@ class IngredientForm(forms.ModelForm):
 
 class StockForm(forms.Form):
     amount = forms.IntegerField(min_value=1, label="Amount")
+
+def form_valid(self, form):
+    ingredient = self.get_object()
+    amount = form.cleaned_data['amount']
+    if amount > ingredient.quantity:
+        form.add_error('amount', f'Cannot stock out more than current amount ({ingredient.quantity}).')
+        return self.form_invalid(form)
