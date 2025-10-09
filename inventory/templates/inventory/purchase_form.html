@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4" style="max-width: 700px;">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="mb-4">Add Purchase</h2>
+      <form method="post" id="purchaseForm">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="supplier_name" class="form-label">Supplier Name</label>
+          <input type="text" class="form-control" id="supplier_name" name="supplier_name" required>
+        </div>
+        <div class="mb-3">
+          <label for="invoice_number" class="form-label">Invoice Number</label>
+          <input type="text" class="form-control" id="invoice_number" name="invoice_number" required>
+        </div>
+        <hr>
+        <h5>Raw Items</h5>
+        <div id="rawItemsContainer"></div>
+        <button type="button" class="btn btn-secondary mb-3" id="addRawItemBtn">Add Raw Item</button>
+        <hr>
+        <div class="mb-3">
+          <label for="total" class="form-label">Total</label>
+          <input type="text" class="form-control" id="total" name="total" readonly>
+        </div>
+        <div class="d-flex justify-content-between mt-3">
+          <button type="submit" class="btn btn-success">Submit Purchase</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script id="rawItemsData" type="application/json">
+  {{ raw_items_json|safe }}
+</script>
+<script>
+  // Raw items data from Django context
+  const rawItems = JSON.parse(document.getElementById('rawItemsData').textContent);
+
+  let rawItemCount = 0;
+
+  function updateTotal() {
+    let total = 0;
+    document.querySelectorAll('.raw-item-form').forEach(function(form) {
+      const price = parseFloat(form.querySelector('.raw-item-price').value) || 0;
+      const qty = parseFloat(form.querySelector('.raw-item-qty').value) || 0;
+      total += price * qty;
+    });
+    document.getElementById('total').value = total.toFixed(2);
+  }
+
+  function addRawItemForm() {
+    rawItemCount++;
+    const container = document.getElementById('rawItemsContainer');
+    const div = document.createElement('div');
+    div.className = 'raw-item-form card mb-2 p-3';
+    div.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <label class="form-label mb-0">Raw Item</label>
+        <button type="button" class="btn btn-danger btn-sm removeRawItemBtn">Remove</button>
+      </div>
+      <div class="mb-2">
+        <select class="form-select raw-item-select" name="raw_item_${rawItemCount}" required>
+          <option value="">Select Raw Item</option>
+          ${rawItems.map(item => `<option value="${item.id}" data-uom="${item.uom}" data-price="${item.price}">${item.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Unit of Measurement</label>
+        <input type="text" class="form-control raw-item-uom" name="uom_${rawItemCount}" readonly>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Price per Unit</label>
+        <input type="number" step="0.01" class="form-control raw-item-price" name="price_${rawItemCount}" readonly>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Quantity</label>
+        <input type="number" step="0.01" class="form-control raw-item-qty" name="qty_${rawItemCount}" required>
+      </div>
+    `;
+    container.appendChild(div);
+
+    // Event listeners
+    div.querySelector('.raw-item-select').addEventListener('change', function() {
+      const selected = this.options[this.selectedIndex];
+      div.querySelector('.raw-item-uom').value = selected.getAttribute('data-uom') || '';
+      div.querySelector('.raw-item-price').value = selected.getAttribute('data-price') || '';
+      updateTotal();
+    });
+    div.querySelector('.raw-item-qty').addEventListener('input', updateTotal);
+    div.querySelector('.removeRawItemBtn').addEventListener('click', function() {
+      div.remove();
+      updateTotal();
+    });
+  }
+
+  document.getElementById('addRawItemBtn').addEventListener('click', addRawItemForm);
+
+  // Add first raw item form by default
+  addRawItemForm();
+</script>
+{% endblock %}

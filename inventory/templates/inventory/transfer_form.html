@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4" style="max-width: 700px;">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="mb-4">Create Transfer</h2>
+      <form method="post" id="transferForm">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="reason" class="form-label">Reason</label>
+          <input type="text" class="form-control" id="reason" name="reason" required>
+        </div>
+        <hr>
+        <h5>Transfer Items</h5>
+        <div id="transferItemsContainer"></div>
+        <button type="button" class="btn btn-secondary mb-3" id="addTransferItemBtn">Add Item</button>
+        <div class="d-flex justify-content-between mt-3">
+          <button type="submit" class="btn btn-success">Submit Transfer</button>
+          <a href="{% url 'storeroom' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  const storeroomItems = [
+    {% for entry in storeroom_list %}
+      {id: {{ entry.id }}, name: "{{ entry.raw_item.name|escapejs }}", uom: "{{ entry.raw_item.unit_of_measurement|escapejs }}", quantity: "{{ entry.quantity }}"}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+
+  let transferItemCount = 0;
+
+  function addTransferItemForm() {
+    transferItemCount++;
+    const container = document.getElementById('transferItemsContainer');
+    const div = document.createElement('div');
+    div.className = 'transfer-item-form card mb-2 p-3';
+    div.innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <label class="form-label mb-0">Storeroom Item</label>
+        <button type="button" class="btn btn-danger btn-sm removeTransferItemBtn">Remove</button>
+      </div>
+      <div class="mb-2">
+        <select class="form-select storeroom-item-select" name="storeroom_item_${transferItemCount}" required>
+          <option value="">Select Item</option>
+          ${storeroomItems.map(item => `<option value="${item.id}" data-uom="${item.uom}" data-quantity="${item.quantity}">${item.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Unit of Measurement</label>
+        <input type="text" class="form-control storeroom-item-uom" name="uom_${transferItemCount}" readonly>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Available Quantity</label>
+        <input type="text" class="form-control storeroom-item-available" name="available_${transferItemCount}" readonly>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Transfer Quantity</label>
+        <input type="number" step="0.01" class="form-control storeroom-item-qty" name="qty_${transferItemCount}" required>
+      </div>
+    `;
+    container.appendChild(div);
+
+    div.querySelector('.storeroom-item-select').addEventListener('change', function() {
+      const selected = this.options[this.selectedIndex];
+      div.querySelector('.storeroom-item-uom').value = selected.getAttribute('data-uom') || '';
+      div.querySelector('.storeroom-item-available').value = selected.getAttribute('data-quantity') || '';
+    });
+    div.querySelector('.removeTransferItemBtn').addEventListener('click', function() {
+      div.remove();
+    });
+  }
+
+  document.getElementById('addTransferItemBtn').addEventListener('click', addTransferItemForm);
+  addTransferItemForm();
+</script>
+{% endblock %}

@@ -1,4 +1,5 @@
 {% load static %}
+<link rel="stylesheet" href="{% static 'css/styles.css' %}">
 <!DOCTYPE html>
 <html lang="en">
 
@@ -59,7 +60,10 @@
                   Inventory
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item" href="{% url 'ingredient-list' %}">View Ingredients</a></li>
+                  <li><a class="dropdown-item" href="{% url 'rawitem-list' %}">View Raw Items</a></li>
+                  <li><a class="dropdown-item" href="{% url 'purchase-add' %}">Purchase</a></li>
+                  <li><a class="dropdown-item" href="{% url 'storeroom' %}">Storeroom</a></li>
+                  <li><a class="dropdown-item" href="{% url 'transfer-add' %}">Transfer</a></li>
                 </ul>
               </li>
             </ul>
