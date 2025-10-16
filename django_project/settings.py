@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "inventory",
     "sales",
     "pages",
+    "menu",
 ]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#middleware
@@ -84,9 +85,9 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
+        "NAME": "coffee_shop",
         "USER": "postgres",
-        "PASSWORD": "123",
+        "PASSWORD": "admin",
         "HOST": "localhost",
         "PORT": "5432",
     }

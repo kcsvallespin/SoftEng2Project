@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}View Items{% endblock title %}
+
+{% block content %}
+<ul>
+    {% for item in items %}
+    <li>{{ item.name }}
+        <dialog id="{{ item.item_id }}">
+            <!-- <p>Recorded by: {{ sale.user.email }}</p> -->
+             <ul>
+                {% for variant in item.itemvariants.all %}
+                <li>{{ variant.sku }} - Php {{ variant.price }}</li>
+                {% endfor %}
+            </ul>
+            <button type="button" onclick="document.getElementById('{{ item.item_id }}').close()">Close</button>
+        </dialog>
+
+        <br>
+        <button type="button" onclick="document.getElementById('{{ item.item_id }}').showModal()">Details</button>
+        <a href="{% url 'edit_item' item.item_id %}">Edit</a>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock content %}
+{% block javascript %}
+    {{ block.super }}
+    <script>
+        window.view = {
+            // deleteSaleUrl: "{% url 'delete_sale' 0 %}".slice(0, -2),
+            csrfToken: "{{ csrf_token }}"
+        };
+    </script>
+    <script src="{% static 'js/sales/sales.js' %}"></script>
+{% endblock javascript %}

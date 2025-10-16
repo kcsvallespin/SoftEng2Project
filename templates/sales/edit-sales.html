@@ -5,10 +5,22 @@
 {% block content %}
     {{ block.super }}
     <div id="order-summary">
-        {% for item in sale.saleitems_set.all %}
-        <p>{{ item.quantity }}x {{ item.category.category_name}}  ---------- Php {{ item.category.price }}</p>
+        {% for item in sale.saleitems.all %}
+        <p>{{ item.quantity }}x {{ item.item_variants.sku}}  ---------- Php {{ item.item_variant.price }}</p>
         {% endfor %}
         <p>Total: Php {{ sale.total_price }}</p>
     </div>
-    <button type="button">Save Changes</button>
+    <button data-sale-id="{{ sale.sale_id }}" type="button" onclick="editSale(this.dataset.saleId)">Save Changes</button>
 {% endblock content %}
+{% block javascript %}
+  {{ block.super }}  {# This is a Django template comment #}
+  {% if sale %}
+  <script>
+    window.edit = {
+      editSaleUrl: "{% url 'edit_sale' sale.sale_id %}",
+      csrfToken: "{{ csrf_token }}"
+    };
+  </script>
+{% endif %}
+  <script src="{% static 'js/sales/sales.js' %}"></script>
+{% endblock javascript %}

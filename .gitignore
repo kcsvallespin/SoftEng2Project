@@ -13,6 +13,7 @@ media
 
 # Virtual environment
 venv
+.venv
 
 # Screencast
 Lithium_Demo_2025.mp4

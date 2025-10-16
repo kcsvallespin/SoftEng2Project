@@ -8,9 +8,9 @@
     <li>
         <dialog id="{{ sale.sale_id }}">
             <p>Recorded by: {{ sale.user.email }}</p>
-            {% for item in sale.saleitems_set.all %}
+            {% for item in sale.saleitems.all %}
             <ul>
-                <li>{{ item.category.category_name }} - Php {{ item.category.price }} x {{ item.quantity }}</li>
+                <li>{{ item.item_variant.sku }} - Php {{ item.item_variant.price }} x {{ item.quantity }}</li>
             </ul>
             {% endfor %}
             <p>Total: Php {{ sale.total_price }}<br>
@@ -23,7 +23,7 @@
         <br>
         <button type="button" onclick="document.getElementById('{{ sale.sale_id }}').showModal()">Details</button>
         {% if request.user.is_staff %}
-        <!-- <a href="{% url 'display_sale' sale.sale_id %}">Edit</a> -->
+        <a href="{% url 'display_sale' sale.sale_id %}">Edit</a>
         <button onclick="deleteSale('{{ sale.sale_id }}')">Delete</button>
         {% endif %}
     </li>
@@ -35,7 +35,6 @@
     <script>
         window.view = {
             deleteSaleUrl: "{% url 'delete_sale' 0 %}".slice(0, -2),
-            fetchSaleUrl: "{ url 'get_sale' 0 %}".slice(0, -2), 
             csrfToken: "{{ csrf_token }}"
         };
     </script>

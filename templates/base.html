@@ -37,6 +37,20 @@
             <!--<a class="nav-link" href="{% url 'about' %}">About</a>-->
           </li>
           {% if user.is_authenticated %}
+          <div>
+            <ul class="navbar-nav">
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  Menu
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" href="{% url 'create_item' %}">Create Item</a></li>
+                  <li><a class="dropdown-item" href="{% url 'view_items' %}">View Menu</a></li>
+                </ul>
+              </li>
+            </ul>
+        </div>
         <div>
           <ul class="navbar-nav">
             <li class="nav-item dropdown">
