@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}View Items{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="mb-4">Menu Items</h2>
+            <form id="filter-form" class="mb-3">
+                <div class="row g-2 align-items-center">
+                    <div class="col-auto">
+                        <label for="filter-type" class="form-label mb-0">Type:</label>
+                        <select id="filter-type" class="form-select form-select-sm">
+                            <option value="all">All</option>
+                            <option value="food">Food</option>
+                            <option value="drink">Drink</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="show-inactive">
+                            <label class="form-check-label" for="show-inactive">Show Inactive</label>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <input type="text" id="search-name" class="form-control form-control-sm" placeholder="Search by name...">
+                    </div>
+                </div>
+            </form>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle" id="items-table">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Active</th>
+                            <th>Variants</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr data-type="{{ item.type }}" data-active="{{ item.is_active|yesno:'1,0' }}">
+                            <td>{{ item.name }}</td>
+                            <td class="text-capitalize">{{ item.type }}</td>
+                            <td>
+                                {% if item.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <ul class="list-unstyled mb-0">
+                                    {% for variant in item.itemvariants.all %}
+                                    <li><strong>{{ variant.sku }}</strong> - ₱{{ variant.price }}</li>
+                                    {% empty %}
+                                    <li class="text-muted">No variants</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>
+                                <a href="{% url 'edit_item' item.item_id %}" class="btn btn-sm btn-primary">Edit</a>
+                                <button type="button" class="btn btn-sm btn-secondary" data-bs-toggle="modal" data-bs-target="#detailsModal{{ item.item_id }}">Details</button>
+                                <!-- Modal -->
+                                <div class="modal fade" id="detailsModal{{ item.item_id }}" tabindex="-1" aria-labelledby="detailsModalLabel{{ item.item_id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="detailsModalLabel{{ item.item_id }}">{{ item.name }} Details</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <ul class="list-group">
+                                                    {% for variant in item.itemvariants.all %}
+                                                    <li class="list-group-item">
+                                                        <strong>SKU:</strong> {{ variant.sku }}<br>
+                                                        <strong>Price:</strong> ₱{{ variant.price }}
+                                                    </li>
+                                                    {% empty %}
+                                                    <li class="list-group-item text-muted">No variants</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block javascript %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterType = document.getElementById('filter-type');
+        const showInactive = document.getElementById('show-inactive');
+        const searchName = document.getElementById('search-name');
+        const table = document.getElementById('items-table');
+        function filterTable() {
+            const type = filterType.value;
+            const showInactiveChecked = showInactive.checked;
+            const search = searchName.value.trim().toLowerCase();
+            Array.from(table.querySelectorAll('tbody tr')).forEach(row => {
+                const rowType = row.getAttribute('data-type');
+                const rowActive = row.getAttribute('data-active') === '1';
+                const rowName = row.querySelector('td').textContent.trim().toLowerCase();
+                let show = true;
+                if (type !== 'all' && rowType !== type) show = false;
+                if (!showInactiveChecked && !rowActive) show = false;
+                if (search && !rowName.includes(search)) show = false;
+                row.style.display = show ? '' : 'none';
+            });
+        }
+        filterType.addEventListener('change', filterTable);
+        showInactive.addEventListener('change', filterTable);
+        searchName.addEventListener('input', filterTable);
+        filterTable();
+    });
+</script>
+{% endblock javascript %}

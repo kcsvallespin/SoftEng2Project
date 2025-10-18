@@ -3,12 +3,67 @@
 {% block title %}Edit Sale{% endblock title %}
 
 {% block content %}
-    {{ block.super }}
-    <div id="order-summary">
-        {% for item in sale.saleitems_set.all %}
-        <p>{{ item.quantity }}x {{ item.category.category_name}}  ---------- Php {{ item.category.price }}</p>
-        {% endfor %}
-        <p>Total: Php {{ sale.total_price }}</p>
+  {# Do NOT show block.super to avoid default order summary from products-list.html #}
+  <div class="container mt-4">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card shadow-sm">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Edit Sale #{{ sale.sale_id }}</h4>
+          </div>
+          <div class="card-body">
+            <table class="table table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th>Qty</th>
+                  <th>Item</th>
+                  <th>Price</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in sale.saleitems.all %}
+                  <tr>
+                    <td>
+                      <input type="number" min="1" class="form-control form-control-sm" name="quantity_{{ item.saleitem_id }}" value="{{ item.quantity }}" style="width: 80px;">
+                    </td>
+                    <td>
+                      <select class="form-select form-select-sm item-dropdown" name="item_{{ item.saleitem_id }}">
+                        {% for menu_item in items %}
+                          <option value="{{ menu_item.item_id }}" {% if menu_item.item_id == item.item_variant.item.item_id %}selected{% endif %}>{{ menu_item.name }}</option>
+                        {% endfor %}
+                      </select>
+                    </td>
+                    <td>₱{{ item.item_variant.price }}</td>
+                    <td>₱{{ item.quantity|floatformat:0 }} × ₱{{ item.item_variant.price }} = ₱{{ item.quantity|floatformat:0|add:0|floatformat:0|add:0|floatformat:0|add:0|floatformat:0 }}{{ item.item_variant.price|floatformat:2 }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th colspan="3" class="text-end">Total</th>
+                  <th>₱{{ sale.total_price }}</th>
+                </tr>
+              </tfoot>
+            </table>
+            <div class="d-flex justify-content-end">
+              <button data-sale-id="{{ sale.sale_id }}" type="button" class="btn btn-success btn-lg" onclick="editSale(this.dataset.saleId)">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <button type="button">Save Changes</button>
+  </div>
 {% endblock content %}
+{% block javascript %}
+  {{ block.super }}
+  {% if sale %}
+  <script>
+    window.edit = {
+      editSaleUrl: "{% url 'edit_sale' sale.sale_id %}",
+      csrfToken: "{{ csrf_token }}"
+    };
+  </script>
+  {% endif %}
+  <script src="{% static 'js/sales/sales.js' %}"></script>
+{% endblock javascript %}

@@ -112,11 +112,33 @@ class RawItemCreateView(CreateView):
     template_name = 'inventory/rawitem_form.html'
     success_url = reverse_lazy('rawitem-list')
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        try:
+            from activitylog.utils import log_activity
+            user = self.request.user
+            raw_item = self.object
+            log_activity(user, 'RAW_ITEM', raw_item.id, 'Created raw item')
+        except Exception as e:
+            print(f"[ERROR] Failed to log raw item creation: {e}")
+        return response
+
 class RawItemUpdateView(UpdateView):
     model = RawItem
     fields = '__all__'
     template_name = 'inventory/rawitem_form.html'
     success_url = reverse_lazy('rawitem-list')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        try:
+            from activitylog.utils import log_activity
+            user = self.request.user
+            raw_item = self.object
+            log_activity(user, 'RAW_ITEM', raw_item.id, 'Edited raw item')
+        except Exception as e:
+            print(f"[ERROR] Failed to log raw item edit: {e}")
+        return response
 
 class RawItemDeleteView(DeleteView):
     model = RawItem
@@ -171,6 +193,11 @@ def purchase_create_view(request):
             user=request.user,
             display=True
         )
+        try:
+            from activitylog.utils import log_activity
+            log_activity(request.user, 'PURCHASE', purchase.id, 'Created purchase')
+        except Exception as e:
+            print(f"[ERROR] Failed to log purchase creation: {e}")
 
         # Create StoreroomItems with your requested field names
         for item in purchase_items:
@@ -221,6 +248,7 @@ from .models import Transfer, TransferItem, Storeroom
 from django.contrib import messages
 
 def transfer_create_view(request):
+    print('[DEBUG] transfer_create_view called')
     storeroom_list = Storeroom.objects.select_related('raw_item').filter(display=True)
     if request.method == 'POST':
         reason = request.POST.get('reason')
@@ -254,6 +282,8 @@ def transfer_create_view(request):
             user=user,
             display=True
         )
+        from activitylog.utils import log_activity
+        log_activity(user, 'TRANSFER', transfer.id, 'Created transfer')
 
         for item in transfer_items:
             TransferItem.objects.create(

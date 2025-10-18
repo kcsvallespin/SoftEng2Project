@@ -3,39 +3,53 @@
 {% block title %}View Sales{% endblock title %}
 
 {% block content %}
-<ul>
-    {% for sale in sales %}
-    <li>
-        <dialog id="{{ sale.sale_id }}">
-            <p>Recorded by: {{ sale.user.email }}</p>
-            {% for item in sale.saleitems_set.all %}
-            <ul>
-                <li>{{ item.category.category_name }} - Php {{ item.category.price }} x {{ item.quantity }}</li>
-            </ul>
-            {% endfor %}
-            <p>Total: Php {{ sale.total_price }}<br>
-            {{ sale.datetime }}</p>
-            <button type="button" onclick="document.getElementById('{{ sale.sale_id }}').close()">Close</button>
-        </dialog>
-
-        {{ sale.datetime}} - Php {{ sale.total_price }}
-        {% if request.user.is_staff %} (by {{ sale.user.email }}) {% endif %}
-        <br>
-        <button type="button" onclick="document.getElementById('{{ sale.sale_id }}').showModal()">Details</button>
-        {% if request.user.is_staff %}
-        <!-- <a href="{% url 'display_sale' sale.sale_id %}">Edit</a> -->
-        <button onclick="deleteSale('{{ sale.sale_id }}')">Delete</button>
-        {% endif %}
-    </li>
-    {% endfor %}
-</ul>
+<div class="container mt-4">
+    <h2 class="mb-4">Sales History</h2>
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        {% for sale in sales %}
+            <div class="col">
+                <div class="card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">{{ sale.datetime|date:"M d, Y H:i" }}</span>
+                        <span class="badge bg-success fs-6">₱{{ sale.total_price }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% if request.user.is_staff %}
+                            <span class="badge bg-info text-dark mb-2">By: {{ sale.user.email }}</span>
+                        {% endif %}
+                        <button type="button" class="btn btn-outline-primary btn-sm mb-2" onclick="document.getElementById('{{ sale.sale_id }}').showModal()">Details</button>
+                        {% if request.user.is_staff %}
+                            <a href="{% url 'display_sale' sale.sale_id %}" class="btn btn-outline-secondary btn-sm mb-2">Edit</a>
+                            <button class="btn btn-outline-danger btn-sm mb-2" onclick="deleteSale('{{ sale.sale_id }}')">Delete</button>
+                        {% endif %}
+                    </div>
+                </div>
+                <dialog id="{{ sale.sale_id }}" class="p-3 rounded">
+                    <h5 class="mb-3">Sale Details</h5>
+                    <p class="mb-1"><strong>Recorded by:</strong> {{ sale.user.email }}</p>
+                    <ul class="list-group mb-3">
+                        {% for item in sale.saleitems.all %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>{{ item.item_variant.sku }}</span>
+                                <span class="badge bg-primary">₱{{ item.item_variant.price }}</span>
+                                <span class="badge bg-secondary">x {{ item.quantity }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <p class="mb-2"><strong>Total:</strong> <span class="badge bg-success">₱{{ sale.total_price }}</span></p>
+                    <p class="mb-2"><strong>Date:</strong> {{ sale.datetime|date:"M d, Y H:i" }}</p>
+                    <button type="button" class="btn btn-outline-dark" onclick="document.getElementById('{{ sale.sale_id }}').close()">Close</button>
+                </dialog>
+            </div>
+        {% endfor %}
+    </div>
+</div>
 {% endblock content %}
 {% block javascript %}
     {{ block.super }}
     <script>
         window.view = {
             deleteSaleUrl: "{% url 'delete_sale' 0 %}".slice(0, -2),
-            fetchSaleUrl: "{ url 'get_sale' 0 %}".slice(0, -2), 
             csrfToken: "{{ csrf_token }}"
         };
     </script>

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Log Detail{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="mb-4">Log Detail</h2>
+      <dl class="row">
+        <dt class="col-sm-3">Date/Time</dt>
+        <dd class="col-sm-9">{{ log.date_time|date:"Y-m-d H:i:s" }}</dd>
+        <dt class="col-sm-3">User</dt>
+        <dd class="col-sm-9">{{ log.user.email }}</dd>
+        <dt class="col-sm-3">Transaction Type</dt>
+        <dd class="col-sm-9">{{ log.transaction_type }}</dd>
+        <dt class="col-sm-3">Reference ID</dt>
+        <dd class="col-sm-9">{{ log.reference_id }}</dd>
+        <dt class="col-sm-3">Action</dt>
+        <dd class="col-sm-9">{{ log.action }}</dd>
+      </dl>
+      {% if raw_item_detail %}
+      <hr>
+      <h4>Raw Item Details</h4>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Unit of Measurement</th>
+              <th>Description</th>
+              <th>Display</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ raw_item_detail.name }}</td>
+              <td>{{ raw_item_detail.price }}</td>
+              <td>{{ raw_item_detail.unit_of_measurement }}</td>
+              <td>{{ raw_item_detail.description }}</td>
+              <td>{% if raw_item_detail.display %}Yes{% else %}No{% endif %}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+      {% if transfer_items %}
+      <hr>
+      <h4>Transferred Items</h4>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Raw Item</th>
+              <th>Quantity</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in transfer_items %}
+            <tr>
+              <td>{{ item.item_name }}</td>
+              <td>{{ item.quantity }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+      <a href="{% url 'view_logs' %}" class="btn btn-secondary">Back to Logs</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

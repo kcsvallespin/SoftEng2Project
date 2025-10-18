@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Create Item{% endblock title %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="mb-4">Create Item</h2>
+            {% if message %}
+                <div class="alert alert-danger">{{ message }}</div>
+            {% endif %}
+            <form method="post" action="{% url 'create_item' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Item Name:</label>
+                    <input type="text" id="name" name="name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="type" class="form-label">Type:</label>
+                    <select id="type" name="type" class="form-select" required>
+                        <option value="food" selected>Food</option>
+                        <option value="drink">Drink</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="image" class="form-label">Upload Image:</label>
+                    <input type="file" id="image" name="image" class="form-control" accept="image/*">
+                </div>
+                <div id="variants-container">
+                    <div class="row g-2 align-items-end variant mb-2">
+                        <div class="col-md-5">
+                            <label class="form-label">Variant</label>
+                            <input type="text" name="variant_name[]" class="form-control" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Price</label>
+                            <input type="number" name="variant_price[]" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger w-100 remove-variant" onclick="removeVariant(this)" style="display:none;">Remove</button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary mb-3" onclick="addVariant()">Add Variant</button>
+                <br>
+                <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block javascript %}
+{{ block.super }}
+<script>
+        function addVariant() {
+                const container = document.getElementById('variants-container');
+                const div = document.createElement('div');
+                div.classList.add('row', 'g-2', 'align-items-end', 'variant', 'mb-2');
+                div.innerHTML = `
+                        <div class="col-md-5">
+                            <label class="form-label">Variant</label>
+                            <input type="text" name="variant_name[]" class="form-control" required>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label">Price</label>
+                            <input type="number" name="variant_price[]" class="form-control" step="0.01" required>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger w-100 remove-variant" onclick="removeVariant(this)">Remove</button>
+                        </div>
+                `;
+                // Show remove button for all but the first variant
+                Array.from(container.getElementsByClassName('remove-variant')).forEach(btn => btn.style.display = '');
+                container.appendChild(div);
+        }
+
+        function removeVariant(button) {
+                const container = document.getElementById('variants-container');
+                if (container.children.length > 1) {
+                        button.closest('.variant').remove();
+                        // Hide remove button if only one left
+                        if (container.children.length === 1) {
+                                container.querySelector('.remove-variant').style.display = 'none';
+                        }
+                } else {
+                        alert("At least one variant is required.");
+                }
+        }
+
+        // Hide remove button if only one variant on page load
+        document.addEventListener('DOMContentLoaded', function() {
+                const container = document.getElementById('variants-container');
+                if (container.children.length === 1) {
+                        container.querySelector('.remove-variant').style.display = 'none';
+                }
+        });
+</script>
+{% endblock javascript %}
+

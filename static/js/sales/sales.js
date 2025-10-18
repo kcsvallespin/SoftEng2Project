@@ -1,32 +1,107 @@
+// Edit Sale function for edit-sales.html
+function editSale(saleId) {
+    const csrfToken = window.edit.csrfToken;
+    const editSaleUrl = window.edit.editSaleUrl;
+    // Collect all sale item rows
+    const rows = document.querySelectorAll('tbody tr');
+    let items = [];
+    rows.forEach(row => {
+        const qtyInput = row.querySelector('input[type="number"]');
+        // Extract saleitem id from name attribute
+        const idMatch = qtyInput.name.match(/quantity_(\d+)/);
+        const saleitemId = idMatch ? idMatch[1] : null;
+        if (!saleitemId) return;
+        // Get item_id from dropdown (now menu item, not variant)
+        const itemSelect = row.querySelector('select');
+        const item_id = itemSelect ? parseInt(itemSelect.value) : null;
+        // Get price from price column
+        const price = parseFloat(row.querySelector('td:nth-child(3)').textContent.replace('₱',''));
+        items.push({
+            item_id: item_id,
+            quantity: parseInt(qtyInput.value),
+            price: price,
+            saleitem_id: parseInt(saleitemId)
+        });
+    });
+    if (items.length === 0) {
+        alert('No items to update.');
+        return;
+    }
+    if (!confirm('Save changes to this sale?')) return;
+    fetch(editSaleUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify(items)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Sale updated successfully!');
+            location.reload();
+        } else {
+            alert('Error updating sale: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending data: ', error);
+        alert('Failed to update sale.');
+    });
+}
 function createSale() {
     const csrfToken = window.create.csrfToken;
     const createSaleUrl = window.create.createSaleUrl;
-    
-    if (window.selectedItems.length == 0) {
-        alert('No items selected.')
-        return;
-    } else {
-        const confirmation = confirm('Are you sure you want to record this sale?');
-        if (!confirmation) {
-            return;
+    // Build selectedItems array with item_variant_id, quantity, price, sku
+    let selectedItems = [];
+    document.querySelectorAll('input[type="number"][name="quantity"]').forEach(input => {
+        const quantity = parseInt(input.value);
+        if (quantity > 0) {
+            const item_variant_id = parseInt(input.id.replace('quantity-', ''));
+            const sku = input.getAttribute('data-name');
+            const price = parseFloat(input.getAttribute('data-price'));
+            selectedItems.push({
+                item_variant_id: item_variant_id,
+                quantity: quantity,
+                price: price,
+                sku: sku
+            });
         }
+    });
+    if (selectedItems.length == 0) {
+        alert('No items selected.');
+        return;
     }
-    console.log('Submitting sale with items: ', window.selectedItems);
-
+    const confirmation = confirm('Are you sure you want to record this sale?');
+    if (!confirmation) {
+        return;
+    }
+    // Collect invoice_number, tin, payment_type from form
+    const invoice_number = document.getElementById('invoice_number').value;
+    const tin = document.getElementById('tin').value;
+    const payment_type = document.getElementById('payment_type').value;
+    const payload = {
+        items: selectedItems,
+        invoice_number: invoice_number,
+        tin: tin,
+        payment_type: payment_type
+    };
+    console.log('Submitting sale with payload: ', payload);
     fetch(createSaleUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken' : csrfToken,
         },
-        body: JSON.stringify(window.selectedItems)
+        body: JSON.stringify(payload)
     })
     .then(response => response.json())
     .then(data => {
         if (data.status == 'success') {
             alert('Sale created successfully!');
             window.selectedItems = [];
-            inputs.forEach(input => input.value = 0);
+            document.querySelectorAll('input[type="number"][name="quantity"]').forEach(input => input.value = 0);
             document.getElementById('order-summary').innerText = '';
         } else {
             alert('Error creating sale: ' + data.message);

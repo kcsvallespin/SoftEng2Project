@@ -1,43 +1,86 @@
 import json
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.db.models import Prefetch
-from .models import Products, Categories, Saleitems, Sales
+from django.utils import timezone
+from .models import Saleitems, Sales
+from menu.models import Items, ItemVariants
 
 def display_products(request):
-    products = Products.objects.prefetch_related(
-        Prefetch('categories_set', queryset=Categories.objects.order_by('category_name'))).order_by('name')
-    return render(request, 'sales/create-sales.html', {'products': products})
+    from django.conf import settings as djsettings
+    items = Items.objects.prefetch_related(
+        Prefetch('itemvariants', queryset=ItemVariants.objects.order_by('sku'))
+    )
+    return render(request, 'sales/create-sales.html', {
+        'items': items,
+        'MEDIA_URL': getattr(djsettings, 'MEDIA_URL', '/media/')
+    })
 
 def display_sale(request, sale_id):
-    products = Products.objects.prefetch_related(
-        Prefetch('categories_set', queryset=Categories.objects.order_by('category_name'))).order_by('name')
-    sale = Sales.objects.prefetch_related('saleitems_set__category').get(pk=sale_id)
-    print(sale)
-    return render(request, 'sales/edit-sales.html', {'products': products, 'sale': sale})
-
+    items = Items.objects.prefetch_related(
+        Prefetch('itemvariants', queryset=ItemVariants.objects.order_by('sku'))
+    )
+    sale = Sales.objects.prefetch_related('saleitems__item_variant__item__itemvariants').get(pk=sale_id)
+    # Attach .variants to each saleitem for template dropdown
+    for saleitem in sale.saleitems.all():
+        saleitem.variants = saleitem.item_variant.item.itemvariants.all()
+    # Build itemVariantsMap for JS
+    import json as pyjson
+    item_variants_map = {}
+    for menu_item in items:
+        item_variants_map[menu_item.item_id] = [
+            {
+                'variant_id': variant.variant_id,
+                'name': variant.sku if variant.sku else f"Variant {variant.variant_id}",
+                'variation': str(getattr(variant, 'variation', '')),
+                'price': str(variant.price)
+            }
+            for variant in menu_item.itemvariants.all()
+        ]
+    item_variants_json = pyjson.dumps(item_variants_map)
+    return render(request, 'sales/edit-sales.html', {
+        'items': items,
+        'sale': sale,
+        'item_variants_json': item_variants_json
+    })
+    return render(request, 'sales/edit-sales.html', {'items': items, 'sale': sale})
 
 def create_sale(request):
     if request.method == 'POST':
         if not request.user.is_authenticated:
             return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=403)
         try:
-            data = json.loads(request.body)
-            total_price = sum(item['price'] * item['quantity'] for item in data)
+            payload = json.loads(request.body)
+            if isinstance(payload, list):
+                items = payload
+                invoice_number = None
+                tin = None
+                payment_type = None
+            else:
+                items = payload.get('items', [])
+                invoice_number = payload.get('invoice_number')
+                tin = payload.get('tin')
+                payment_type = payload.get('payment_type')
+            total_price = sum(item['price'] * item['quantity'] for item in items)
             user = get_user_model().objects.get(pk=request.user.pk)
-            new_sale = Sales.objects.create(user=user, total_price=total_price)
-            for item in data:
-                category_id = item['categoryId']
-                category = Categories.objects.get(pk=category_id)
+            new_sale = Sales.objects.create(
+                user=user,
+                total_price=total_price,
+                datetime=timezone.now(),
+                invoice_number=invoice_number,
+                tin=tin,
+                payment_type=payment_type
+            )
+            for item in items:
+                item_variant_id = item['item_variant_id']
+                item_variant = ItemVariants.objects.get(pk=item_variant_id)
                 Saleitems.objects.create(
                     sale = new_sale,
-                    category = category,
+                    item_variant = item_variant,
                     price = item['price'],
                     quantity = item['quantity']
-                )                
-
+                )
             return JsonResponse({'status': 'success'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -52,26 +95,22 @@ def edit_sale(request, sale_id):
             sale = Sales.objects.get(pk=sale_id)
             data = json.loads(request.body)
             total_price = sum(item['price'] * item['quantity'] for item in data)
-            incoming_category_ids = set()
+            incoming_saleitem_ids = set()
             for item in data:
-                category_id = item['categoryId']
+                saleitem_id = item.get('saleitem_id')
                 quantity = item['quantity']
                 price = item['price']
-                incoming_category_ids.add(category_id)
-                category = Categories.objects.get(pk=category_id)
-                saleitem, created = Saleitems.object.get_or_create(
-                    sale = sale,
-                    category = category,
-                    defaults={'price': price, 'quantity': quantity}
-                )
-                if not created:
-                    saleitem.price = price
-                    saleitem.quantity = quantity
-                    saleitem.save()
-            sale.saleitems_set.exclude(category_id__in=incoming_category_ids).delete()   
+                incoming_saleitem_ids.add(saleitem_id)
+                try:
+                    saleitem = Saleitems.objects.get(pk=saleitem_id, sale=sale)
+                except Saleitems.DoesNotExist:
+                    continue
+                saleitem.price = price
+                saleitem.quantity = quantity
+                saleitem.save()
+            sale.saleitems.exclude(pk__in=incoming_saleitem_ids).delete()
             sale.total_price = total_price
-            sale.save()         
-
+            sale.save()
             return JsonResponse({'status': 'success'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -82,7 +121,7 @@ def view_sales(request):
     if not request.user.is_authenticated:
         return JsonResponse({'status': 'error', 'message': 'User not authenticated'}, status=403)
     
-    sales = Sales.objects.prefetch_related('saleitems_set')
+    sales = Sales.objects.prefetch_related('saleitems').all()
     if request.user.is_staff:
         sales = sales.order_by('-datetime')
     else:
@@ -100,31 +139,18 @@ def delete_sale(request, sale_id):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-def get_sale(request, sale_id):
+def refund_sale(request, sale_id):
     if not request.user.is_authenticated or not request.user.is_staff:
         return JsonResponse({'status': 'error', 'message': 'User not authorized'}, status=403)
+    if request.method == "POST":
+        try:
+            sale = Sales.objects.get(pk=sale_id)
+            saleitem_count = sale.saleitems.count()
+            #    return render(request, 'sales/refund.html', {'sale': sale, 'saleitem_count': saleitem_count})
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-    display_products(request)
-
-    try:
-        sale = Sales.objects.prefetch_related('saleitems_set').get(pk=sale_id)
-        data = {
-            'id': sale.id,
-            'user': sale.user.username,
-            'total_price': sale.total_price,
-            'datetime': sale.datetime,
-            'items': [
-                {
-                    'category_id': item.category.id,
-                    'category_name': item.category.category_name,
-                    'price': item.price,
-                    'quantity': item.quantity
-                } for item in sale.saleitems_set.all()
-            ]
-        }
-        return JsonResponse(data)
-    except Sales.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Sale not found'}, status=404)
-
-def edit_sale(request, sale_id):
-    return render(request, 'sales/edit-sales.html', {'sale_id': sale_id})
+# check if sale was made online
+# if online, saleitem_count should be reduced
+# otherwise, saleitem_count should be maintained

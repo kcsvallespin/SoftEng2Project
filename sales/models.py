@@ -100,18 +100,6 @@ class AuthPermission(models.Model):
         db_table = 'auth_permission'
         unique_together = (('content_type', 'codename'),)
 
-
-class Categories(models.Model):
-    category_id = models.AutoField(primary_key=True)
-    product = models.ForeignKey('Products', models.DO_NOTHING)
-    category_name = models.CharField(max_length=100)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-
-    class Meta:
-        managed = False
-        db_table = 'categories'
-
-
 class DjangoAdminLog(models.Model):
     action_time = models.DateTimeField()
     object_id = models.TextField(blank=True, null=True)
@@ -175,10 +163,13 @@ class Products(models.Model):
         db_table = 'products'
 
 
+
+from menu.models import ItemVariants
+
 class Saleitems(models.Model):
     saleitem_id = models.AutoField(primary_key=True)
-    category = models.ForeignKey(Categories, models.DO_NOTHING)
-    sale = models.ForeignKey('Sales', on_delete=models.CASCADE)
+    item_variant = models.ForeignKey(ItemVariants, models.DO_NOTHING, db_column='item_variant_id')
+    sale = models.ForeignKey('Sales', on_delete=models.CASCADE, related_name='saleitems')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.IntegerField()
 
@@ -187,15 +178,23 @@ class Saleitems(models.Model):
         db_table = 'saleitems'
 
 
+
 class Sales(models.Model):
     sale_id = models.AutoField(primary_key=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,  # <--- this line
+        on_delete=models.CASCADE,
     )
     datetime = models.DateTimeField(auto_now=True)
-    # user = models.ForeignKey(settings.AUTH_USER_MODEL, models.DO_NOTHING)
+    invoice_number = models.CharField(max_length=20, blank=True, null=True)
+    tin = models.CharField(max_length=20, blank=True, null=True)
+    PAYMENT_TYPE_CHOICES = [
+        ("Cash", "Cash"),
+        ("Card", "Card"),
+        ("G-Cash", "G-Cash"),
+    ]
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, blank=True, null=True)
 
     class Meta:
         managed = True
