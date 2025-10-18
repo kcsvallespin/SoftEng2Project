@@ -12,6 +12,10 @@
                 <div class="alert alert-danger">{{ message }}</div>
             {% endif %}
             <form method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <textarea id="description" name="description" class="form-control" rows="2">{{ item.description }}</textarea>
+                </div>
                 {% csrf_token %}
                 <div class="mb-3">
                     <label for="name" class="form-label">Item Name:</label>
@@ -40,11 +44,11 @@
                 <div id="variants-container">
                     {% for variant in variants %}
                     <div class="row g-2 align-items-end variant mb-2">
-                        <div class="col-md-5">
+                        <div class="col-md-6">
                             <label class="form-label">Variant</label>
                             <input type="text" name="variant_name[]" class="form-control" value="{{ variant.sku }}" required>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-6">
                             <label class="form-label">Price</label>
                             <input type="number" name="variant_price[]" class="form-control" step="0.01" value="{{ variant.price }}" required>
                         </div>
@@ -66,16 +70,17 @@
 {% block javascript %}
 {{ block.super }}
 <script>
+<<<<<<< HEAD
         function addVariant() {
                 const container = document.getElementById('variants-container');
                 const div = document.createElement('div');
                 div.classList.add('row', 'g-2', 'align-items-end', 'variant', 'mb-2');
                 div.innerHTML = `
-                        <div class="col-md-5">
+                        <div class="col-md-6">
                             <label class="form-label">Variant</label>
                             <input type="text" name="variant_name[]" class="form-control" required>
                         </div>
-                        <div class="col-md-5">
+                        <div class="col-md-6">
                             <label class="form-label">Price</label>
                             <input type="number" name="variant_price[]" class="form-control" step="0.01" required>
                         </div>
@@ -105,5 +110,31 @@
                         container.querySelector('.remove-variant').style.display = 'none';
                 }
         });
+=======
+    function addVariant() {
+        const container = document.getElementById('variants-container');
+        const div = document.createElement('div');
+        div.classList.add('variant');
+        div.innerHTML = `
+            <label>Variant:</label>
+            <input type="text" name="variant_name[]" required>
+
+            <label>Price:</label>
+            <input type="number" name="variant_price[]" step="0.01" required>
+
+            <button type="button" onclick="removeVariant(this)">Remove</button>
+        `;
+        container.appendChild(div);
+    }
+
+    function removeVariant(button) {
+        const container = document.getElementById('variants-container');
+        if (container.children.length > 1) {
+            button.parentElement.remove();
+        } else {
+            alert("At least one variant is required.");
+        }
+    }
+>>>>>>> 4080e2bf9290e071ee47fac3ec0f6ef1015febc0
 </script>
 {% endblock javascript %}

@@ -81,6 +81,12 @@ def create_sale(request):
                     price = item['price'],
                     quantity = item['quantity']
                 )
+            # Log activity for sale creation
+            try:
+                from activitylog.utils import log_activity
+                log_activity(request.user, 'sale_creation', new_sale.pk, 'created')
+            except Exception as e:
+                print(f"[ERROR] Activity logging failed: {e}")
             return JsonResponse({'status': 'success'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -111,6 +117,9 @@ def edit_sale(request, sale_id):
             sale.saleitems.exclude(pk__in=incoming_saleitem_ids).delete()
             sale.total_price = total_price
             sale.save()
+            # Log activity for sale edit
+            from activitylog.utils import log_activity
+            log_activity(request.user, 'sale_edit', sale.pk, 'edited')
             return JsonResponse({'status': 'success'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

@@ -1,7 +1,6 @@
-{% extends "base.html" %}
-{% block title %}Log Detail{% endblock %}
-{% block content %}
-<div class="container mt-4">
+      {% extends "base.html" %}
+      {% block title %}Log Detail{% endblock %}
+      {% block content %}
   <div class="card shadow-sm">
     <div class="card-body">
       <h2 class="mb-4">Log Detail</h2>
@@ -17,6 +16,63 @@
         <dt class="col-sm-3">Action</dt>
         <dd class="col-sm-9">{{ log.action }}</dd>
       </dl>
+        {% if sale_detail %}
+        <hr>
+        <h4>Sale Details</h4>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Sale ID</th>
+                <th>User</th>
+                <th>Date/Time</th>
+                <th>Total Price</th>
+                <th>Invoice #</th>
+                <th>TIN</th>
+                <th>Payment Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ sale_detail.pk }}</td>
+                <td>{{ sale_detail.user.email }}</td>
+                <td>{{ sale_detail.datetime|date:"Y-m-d H:i:s" }}</td>
+                <td>{{ sale_detail.total_price }}</td>
+                <td>{{ sale_detail.invoice_number }}</td>
+                <td>{{ sale_detail.tin }}</td>
+                <td>{{ sale_detail.payment_type }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        {% if sale_items %}
+        <h5>Sale Items</h5>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Item Name</th>
+                <th>Variant SKU</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for si in sale_items %}
+              <tr>
+                <td>{{ si.item_variant.item.name }}</td>
+                <td>{{ si.item_variant.sku }}</td>
+                <td>{{ si.quantity }}</td>
+                <td>{{ si.price }}</td>
+                <td>{{ si.quantity|floatformat:0 }} × {{ si.price|floatformat:2 }} = {{ si.quantity|floatformat:0|add:0|floatformat:0|add:0|floatformat:0|add:0|floatformat:0 }}{{ si.price|floatformat:2 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+        {% endif %}
       {% if raw_item_detail %}
       <hr>
       <h4>Raw Item Details</h4>
@@ -43,6 +99,57 @@
         </table>
       </div>
       {% endif %}
+      {% if item_detail %}
+  <hr>
+  <h4>{% if log.transaction_type == 'item_edit' %}Edited Item Details{% else %}Created Item Details{% endif %}</h4>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Image</th>
+              <th>Active</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ item_detail.name }}</td>
+              <td>{{ item_detail.type }}</td>
+              <td>{{ item_detail.description }}</td>
+              <td>{% if item_detail.image %}<img src="{{ MEDIA_URL }}{{ item_detail.image }}" alt="{{ item_detail.name }}" style="max-width:80px;max-height:80px;">{% endif %}</td>
+              <td>{% if item_detail.is_active %}Yes{% else %}No{% endif %}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% if item_variants %}
+      <h5>Item Variants</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Default</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for variant in item_variants %}
+            <tr>
+              <td>{{ variant.sku }}</td>
+              <td>{{ variant.price }}</td>
+              <td>{{ variant.current_stock }}</td>
+              <td>{% if variant.is_default %}Yes{% else %}No{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+      {% endif %}
       {% if transfer_items %}
       <hr>
       <h4>Transferred Items</h4>
@@ -65,8 +172,58 @@
         </table>
       </div>
       {% endif %}
+      {% if purchase_detail %}
+      <hr>
+      <h4>Purchase Details</h4>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Purchase ID</th>
+              <th>User</th>
+              <th>Date/Time</th>
+              <th>Total</th>
+              <th>Invoice #</th>
+              <th>Supplier</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{{ purchase_detail.id }}</td>
+              <td>{{ purchase_detail.user.email }}</td>
+              <td>{{ purchase_detail.datetime|date:"Y-m-d H:i:s" }}</td>
+              <td>{{ purchase_detail.total }}</td>
+              <td>{{ purchase_detail.invoice_number }}</td>
+              <td>{{ purchase_detail.supplier_name }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% if purchase_items %}
+      <h5>Purchase Items</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Raw Item Name</th>
+              <th>Quantity</th>
+              <th>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for pi in purchase_items %}
+            <tr>
+              <td>{{ pi.raw_item_name }}</td>
+              <td>{{ pi.quantity }}</td>
+              <td>{{ pi.price }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+      {% endif %}
       <a href="{% url 'view_logs' %}" class="btn btn-secondary">Back to Logs</a>
     </div>
   </div>
-</div>
 {% endblock %}
