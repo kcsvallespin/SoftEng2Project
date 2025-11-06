@@ -28,7 +28,11 @@
           <h5>{{ item.name }} Varieties</h5>
           {% for item_variant in item.itemvariants.all %}
             <div class="d-flex align-items-center mb-2">
+              {% if item.name == item_variant.sku %}
               <span class="me-2">{{ item_variant.sku }} - <strong>₱{{ item_variant.price }}</strong></span>
+              {% else %}
+              <span class="me-2">{{ item.name }} - {{ item_variant.sku }} - <strong>₱{{ item_variant.price }}</strong></span>
+              {% endif %}
               <button type="button" class="btn btn-outline-secondary btn-sm me-1" onclick="decrementQuantity('{{ item_variant.pk }}')">-</button>
               <input type="number" id="quantity-{{ item_variant.pk }}" name="quantity" data-name="{{ item_variant.sku }}" data-price="{{ item_variant.price }}" min="0" max="99" value="0" readonly style="width: 50px; text-align: center;">
               <button type="button" class="btn btn-outline-secondary btn-sm ms-1" onclick="incrementQuantity('{{ item_variant.pk }}')">+</button>

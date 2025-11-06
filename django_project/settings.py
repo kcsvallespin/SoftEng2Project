@@ -90,9 +90,9 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "postgres",
+        "NAME": "new_shop",
         "USER": "postgres",
-        "PASSWORD": "123",
+        "PASSWORD": "admin",
         "HOST": "localhost",
         "PORT": "5432",
     }

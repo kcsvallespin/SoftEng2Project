@@ -2,14 +2,16 @@ import json
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Sum
+from django.db.models.functions import TruncDate
 from django.utils import timezone
+from datetime import datetime, timedelta
 from .models import Saleitems, Sales
 from menu.models import Items, ItemVariants
 
 def display_products(request):
     from django.conf import settings as djsettings
-    items = Items.objects.prefetch_related(
+    items = Items.objects.filter(is_active=True).prefetch_related(
         Prefetch('itemvariants', queryset=ItemVariants.objects.order_by('sku'))
     )
     return render(request, 'sales/create-sales.html', {
@@ -148,18 +150,56 @@ def delete_sale(request, sale_id):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-def refund_sale(request, sale_id):
-    if not request.user.is_authenticated or not request.user.is_staff:
-        return JsonResponse({'status': 'error', 'message': 'User not authorized'}, status=403)
-    if request.method == "POST":
-        try:
-            sale = Sales.objects.get(pk=sale_id)
-            saleitem_count = sale.saleitems.count()
-            #    return render(request, 'sales/refund.html', {'sale': sale, 'saleitem_count': saleitem_count})
-            return JsonResponse({'status': 'success'})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+def sales_history(request):
+    products = ItemVariants.objects.filter(item__is_active=True).all()
+    product_id = request.GET.get('product_id')
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
 
-# check if sale was made online
-# if online, saleitem_count should be reduced
-# otherwise, saleitem_count should be maintained
+    end_date = timezone.now().date()
+    start_date = end_date - timedelta(days=30)
+
+    if start_date_str and end_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+        except ValueError:
+            pass
+    
+    selected = None
+    sales_by_day = []
+    total_sold = 0
+
+    if product_id:
+        try:
+            selected = ItemVariants.objects.get(pk=product_id)
+        except ItemVariants.DoesNotExist:
+            selected = None
+
+        if selected:
+            sales_by_day_qs = (
+                Saleitems.objects
+                .filter(item_variant=selected, sale__datetime__range=(start_date, end_date))
+                .annotate(sale_date=TruncDate('sale__datetime'))
+                .values('sale_date')
+                .annotate(total_sold=Sum('quantity'))
+                .order_by('sale_date')
+            )
+            sales_by_day = list(sales_by_day_qs)
+
+            total_sold = (
+                Saleitems.objects
+                .filter(item_variant=selected, sale__datetime__range=(start_date, end_date))
+                .aggregate(total_sold=Sum('quantity'))['total_sold'] or 0
+            )
+
+    context = {
+        'products': products,
+        'selected': selected,
+        'sales_by_day': sales_by_day,
+        'total_sold': total_sold,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    return render(request, 'sales/sales-history.html', context)
+

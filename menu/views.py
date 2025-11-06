@@ -48,7 +48,7 @@ def create_item(request):
 
         if item_name and is_single_default_variant and has_single_price:
             # If no variants provided, create a default variant
-            ItemVariants.objects.create(item=item, sku=f"{item_name}-default", price=variant_prices[0])
+            ItemVariants.objects.create(item=item, sku=item_name, price=variant_prices[0])
         # Create each variant
         else:
             for name, price in zip(variant_names, variant_prices):

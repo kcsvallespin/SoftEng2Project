@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Sales History</h2>
+    <h2 class="mb-4">Sales Overview</h2>
     <div class="row row-cols-1 row-cols-md-2 g-4">
         {% for sale in sales %}
             <div class="col">
@@ -30,13 +30,14 @@
                     <ul class="list-group mb-3">
                         {% for item in sale.saleitems.all %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>{{ item.item_variant.sku }}</span>
+                                <span>{{ item.item_variant.item.name }} - {{ item.item_variant.sku }}</span>
                                 <span class="badge bg-primary">₱{{ item.item_variant.price }}</span>
                                 <span class="badge bg-secondary">x {{ item.quantity }}</span>
                             </li>
                         {% endfor %}
                     </ul>
                     <p class="mb-2"><strong>Total:</strong> <span class="badge bg-success">₱{{ sale.total_price }}</span></p>
+                    <p class="mb-1"><strong>Paid through:</strong> {{ sale.payment_type }}</p>
                     <p class="mb-2"><strong>Date:</strong> {{ sale.datetime|date:"M d, Y H:i" }}</p>
                     <button type="button" class="btn btn-outline-dark" onclick="document.getElementById('{{ sale.sale_id }}').close()">Close</button>
                 </dialog>
