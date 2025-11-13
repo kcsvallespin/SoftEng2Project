@@ -1,7 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container mt-4">
+  {% if messages %}
+    <div>
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
   <h1>Storeroom Inventory</h1>
+  <div class="mb-2">
+    <input type="text" id="storeroomSearchBar" class="form-control mb-2" placeholder="Search by raw item, unit, or expiration..." autofocus>
+  </div>
   <div class="mb-2">
     <label for="sortBy">Sort by:</label>
     <select id="sortBy" class="form-select d-inline-block w-auto">
@@ -21,16 +34,20 @@
         <th>Raw Item</th>
         <th>Quantity</th>
         <th>Unit of Measurement</th>
+        <th>Expiration Date</th>
         <th>Display</th>
         <th>Toggle Visibility</th>
       </tr>
     </thead>
     <tbody>
-      {% for entry in storeroom_list %}
-        <tr class="storeroom-row{% if not entry.display %} hidden-item{% endif %}">
-          <td>{{ entry.raw_item.name }}</td>
+      {% for item in storeroom_list %}
+        {% with entry=item.entry status=item.status raw_item=item.raw_item %}
+        <tr class="storeroom-row{% if not entry.display %} hidden-item{% endif %}
+            {% if status == 'expired' %}table-danger{% elif status == 'soon' %}table-warning{% endif %}">
+          <td>{% if raw_item %}{{ raw_item.name }}{% else %}-{% endif %}</td>
           <td>{{ entry.quantity }}</td>
-          <td>{{ entry.raw_item.unit_of_measurement }}</td>
+          <td>{% if raw_item %}{{ raw_item.unit_of_measurement }}{% else %}-{% endif %}</td>
+          <td>{% if entry.expiration_date %}{{ entry.expiration_date }}{% else %}-{% endif %}</td>
           <td>
             {% if entry.display %}
               <span class="badge bg-success">Visible</span>
@@ -47,6 +64,7 @@
             </button>
           </td>
         </tr>
+        {% endwith %}
       {% empty %}
         <tr>
           <td colspan="5">No items in storeroom.</td>
@@ -57,6 +75,22 @@
 </div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    // Search bar logic
+    const searchBar = document.getElementById('storeroomSearchBar');
+    searchBar.addEventListener('input', function() {
+      const query = searchBar.value.toLowerCase();
+      document.querySelectorAll('#storeroomTable tbody tr').forEach(function(row) {
+        const rawItem = row.children[0].innerText.toLowerCase();
+        const unit = row.children[2].innerText.toLowerCase();
+        const expiration = row.children[3].innerText.toLowerCase();
+        if (rawItem.includes(query) || unit.includes(query) || expiration.includes(query)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
     // Hide hidden items by default
     const showHidden = document.getElementById('showHidden');
     showHidden.addEventListener('change', function() {

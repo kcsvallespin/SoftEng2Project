@@ -77,6 +77,10 @@
         <label class="form-label">Quantity</label>
         <input type="number" step="0.01" class="form-control raw-item-qty" name="qty_${rawItemCount}" required>
       </div>
+      <div class="mb-2">
+        <label class="form-label">Expiration Date</label>
+        <input type="date" class="form-control raw-item-expiration" name="expiration_${rawItemCount}">
+      </div>
     `;
     container.appendChild(div);
 

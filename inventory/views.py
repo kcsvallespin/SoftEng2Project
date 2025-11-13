@@ -155,6 +155,7 @@ def purchase_create_view(request):
         }
         for item in RawItem.objects.filter(display=True)
     ]
+
     if request.method == 'POST':
         supplier_name = request.POST.get('supplier_name')
         invoice_number = request.POST.get('invoice_number')
@@ -170,6 +171,7 @@ def purchase_create_view(request):
                 raw_item_id = request.POST.get(f'raw_item_{idx}')
                 qty = request.POST.get(f'qty_{idx}')
                 price = request.POST.get(f'price_{idx}')
+                expiration = request.POST.get(f'expiration_{idx}')
                 if raw_item_id and qty and price:
                     try:
                         raw_item = RawItem.objects.get(pk=raw_item_id)
@@ -180,6 +182,7 @@ def purchase_create_view(request):
                             'raw_item': raw_item,
                             'qty': qty,
                             'price': price,
+                            'expiration': expiration,
                         })
                     except RawItem.DoesNotExist:
                         continue
@@ -199,13 +202,20 @@ def purchase_create_view(request):
         except Exception as e:
             print(f"[ERROR] Failed to log purchase creation: {e}")
 
-        # Create StoreroomItems with your requested field names
+        from datetime import datetime
         for item in purchase_items:
+            expiration_date = None
+            if 'expiration' in item and item['expiration']:
+                try:
+                    expiration_date = datetime.strptime(item['expiration'], "%Y-%m-%d").date()
+                except Exception:
+                    expiration_date = None
             StoreroomItem.objects.create(
                 raw_item_id=item['raw_item'].id,
                 po_id=purchase.id,
                 price=item['price'],
                 quantity=item['qty'],
+                expiration_date=expiration_date,
                 display=True
             )
             storeroom_entry, created = Storeroom.objects.get_or_create(
@@ -215,9 +225,7 @@ def purchase_create_view(request):
             if not created:
                 storeroom_entry.quantity += Decimal(str(item['qty']))
                 storeroom_entry.save()
-                messages.success(request, "Purchase created successfully!")
-                
-            return redirect('purchase-add')
+        return redirect('purchase-add')
 
     context = {
         'raw_items_json': json.dumps(raw_items),
@@ -225,8 +233,42 @@ def purchase_create_view(request):
     return render(request, 'inventory/purchase_form.html', context)
     
 def storeroom_view(request):
-    storeroom_list = Storeroom.objects.select_related('raw_item').all()
-    return render(request, 'inventory/storeroom.html', {'storeroom_list': storeroom_list})
+    from datetime import date, timedelta
+    storeroom_items = StoreroomItem.objects.all()
+    today = date.today()
+    soon_threshold = today + timedelta(days=7)
+    items = []
+    raw_item_cache = {}
+    expired_items = []
+    soon_items = []
+    for entry in storeroom_items:
+        status = 'normal'
+        if entry.expiration_date:
+            if entry.expiration_date < today:
+                status = 'expired'
+                expired_items.append(entry)
+            elif entry.expiration_date <= soon_threshold:
+                status = 'soon'
+                soon_items.append(entry)
+        # Get raw item name
+        raw_item = raw_item_cache.get(entry.raw_item_id)
+        if raw_item is None:
+            try:
+                raw_item = RawItem.objects.get(id=entry.raw_item_id)
+                raw_item_cache[entry.raw_item_id] = raw_item
+            except RawItem.DoesNotExist:
+                raw_item = None
+        items.append({
+            'entry': entry,
+            'status': status,
+            'raw_item': raw_item
+        })
+    # Show both warnings if both exist
+    if expired_items:
+        messages.warning(request, f"There are {len(expired_items)} expired item(s) in the storeroom.")
+    if soon_items:
+        messages.warning(request, f"There are {len(soon_items)} item(s) expiring within 7 days.")
+    return render(request, 'inventory/storeroom.html', {'storeroom_list': items})
 
 @csrf_exempt
 def storeroom_toggle_display(request):

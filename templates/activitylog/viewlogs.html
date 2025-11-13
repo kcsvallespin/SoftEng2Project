@@ -20,7 +20,7 @@
             {% for log in logs %}
             <tr onclick="window.location.href='{% url 'log_detail' log.id %}'" style="cursor:pointer;">
               <td>{{ log.date_time|date:"Y-m-d H:i:s" }}</td>
-              <td>{{ log.user.email }}</td>
+              <td>{{ log.user.username }}</td>
               <td>{{ log.transaction_type }}</td>
               <td>{{ log.reference_id }}</td>
               <td>{{ log.action }}</td>

@@ -15,7 +15,7 @@
                     </div>
                     <div class="card-body">
                         {% if request.user.is_staff %}
-                            <span class="badge bg-info text-dark mb-2">By: {{ sale.user.email }}</span>
+                            <span class="badge bg-info text-dark mb-2">By: {{ sale.user.username }}</span>
                         {% endif %}
                         <button type="button" class="btn btn-outline-primary btn-sm mb-2" onclick="document.getElementById('{{ sale.sale_id }}').showModal()">Details</button>
                         {% if request.user.is_staff %}
@@ -26,16 +26,39 @@
                 </div>
                 <dialog id="{{ sale.sale_id }}" class="p-3 rounded">
                     <h5 class="mb-3">Sale Details</h5>
-                    <p class="mb-1"><strong>Recorded by:</strong> {{ sale.user.email }}</p>
-                    <ul class="list-group mb-3">
-                        {% for item in sale.saleitems.all %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>{{ item.item_variant.item.name }} - {{ item.item_variant.sku }}</span>
-                                <span class="badge bg-primary">₱{{ item.item_variant.price }}</span>
-                                <span class="badge bg-secondary">x {{ item.quantity }}</span>
-                            </li>
-                        {% endfor %}
-                    </ul>
+                    <p class="mb-1"><strong>Recorded by:</strong> {{ sale.user.username }}</p>
+                    {% if sale.customer_name %}
+                        <p class="mb-1"><strong>Customer Name:</strong> {{ sale.customer_name }}</p>
+                    {% endif %}
+                    {% if sale.invoice_number %}
+                        <p class="mb-1"><strong>Invoice Number:</strong> {{ sale.invoice_number }}</p>
+                    {% endif %}
+                    {% if sale.tin %}
+                        <p class="mb-1"><strong>TIN:</strong> {{ sale.tin }}</p>
+                    {% endif %}
+                    {% if sale.reference_number %}
+                        <p class="mb-1"><strong>Reference Number:</strong> {{ sale.reference_number }}</p>
+                    {% endif %}
+                    <table class="table table-bordered mb-3">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>SKU</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in sale.saleitems.all %}
+                            <tr>
+                                <td>{{ item.item_variant.item.name }}</td>
+                                <td>{{ item.item_variant.sku }}</td>
+                                <td>₱{{ item.item_variant.price }}</td>
+                                <td>{{ item.quantity }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                     <p class="mb-2"><strong>Total:</strong> <span class="badge bg-success">₱{{ sale.total_price }}</span></p>
                     <p class="mb-1"><strong>Paid through:</strong> {{ sale.payment_type }}</p>
                     <p class="mb-2"><strong>Date:</strong> {{ sale.datetime|date:"M d, Y H:i" }}</p>

@@ -4,6 +4,7 @@
   <h1>Raw Items</h1>
   <a href="{% url 'rawitem-add' %}" class="btn btn-success mb-2">Add Raw Item</a>
   <div class="mb-2">
+    <input type="text" id="searchBar" class="form-control mb-2" placeholder="Search by name or description...">
     <label for="sortBy">Sort by:</label>
     <select id="sortBy" class="form-select d-inline-block w-auto">
       <option value="none">--</option>
@@ -53,7 +54,20 @@
   </div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Hide hidden items by default
+    // Search bar logic
+    const searchBar = document.getElementById('searchBar');
+    searchBar.addEventListener('input', function() {
+      const query = searchBar.value.toLowerCase();
+      document.querySelectorAll('#rawItemsTable tbody tr').forEach(function(row) {
+        const name = row.children[0].innerText.toLowerCase();
+        const desc = row.children[1].innerText.toLowerCase();
+        if (name.includes(query) || desc.includes(query)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
     const showHidden = document.getElementById('showHidden');
     showHidden.addEventListener('change', function() {
       document.querySelectorAll('.hidden-item').forEach(function(row) {

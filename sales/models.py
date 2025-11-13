@@ -196,6 +196,9 @@ class Sales(models.Model):
     ]
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, blank=True, null=True)
 
+    customer_name = models.CharField(max_length=100, blank=True, null=True)
+    reference_number = models.CharField(max_length=50, blank=True, null=True)
+
     class Meta:
         managed = True
         db_table = 'sales'

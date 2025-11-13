@@ -64,6 +64,8 @@ def create_sale(request):
                 invoice_number = payload.get('invoice_number')
                 tin = payload.get('tin')
                 payment_type = payload.get('payment_type')
+                customer_name = payload.get('customer_name')
+                reference_number = payload.get('reference_number')
             total_price = sum(item['price'] * item['quantity'] for item in items)
             user = get_user_model().objects.get(pk=request.user.pk)
             new_sale = Sales.objects.create(
@@ -72,7 +74,9 @@ def create_sale(request):
                 datetime=timezone.now(),
                 invoice_number=invoice_number,
                 tin=tin,
-                payment_type=payment_type
+                payment_type=payment_type,
+                customer_name=customer_name,
+                reference_number=reference_number
             )
             for item in items:
                 item_variant_id = item['item_variant_id']
@@ -102,9 +106,10 @@ def edit_sale(request, sale_id):
         try:
             sale = Sales.objects.get(pk=sale_id)
             data = json.loads(request.body)
-            total_price = sum(item['price'] * item['quantity'] for item in data)
+            items = data.get('items', data)  # support both array and dict
+            total_price = sum(item['price'] * item['quantity'] for item in items)
             incoming_saleitem_ids = set()
-            for item in data:
+            for item in items:
                 saleitem_id = item.get('saleitem_id')
                 quantity = item['quantity']
                 price = item['price']
@@ -117,7 +122,13 @@ def edit_sale(request, sale_id):
                 saleitem.quantity = quantity
                 saleitem.save()
             sale.saleitems.exclude(pk__in=incoming_saleitem_ids).delete()
+            # Update transaction fields
             sale.total_price = total_price
+            sale.invoice_number = data.get('invoice_number', sale.invoice_number)
+            sale.tin = data.get('tin', sale.tin)
+            sale.payment_type = data.get('payment_type', sale.payment_type)
+            sale.customer_name = data.get('customer_name', sale.customer_name)
+            sale.reference_number = data.get('reference_number', sale.reference_number)
             sale.save()
             # Log activity for sale edit
             from activitylog.utils import log_activity

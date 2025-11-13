@@ -100,7 +100,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><a class="dropdown-item" href="{% url 'load_users' %}">View Accounts</a></li>
-                  <li><a class="dropdown-item" href="{% url 'account_signup' %}">Create Account</a></li>
+                  <li><a class="dropdown-item" href="{% url 'create_user' %}">Create Account</a></li>
                 </ul>
               </li>
             </ul>
@@ -117,7 +117,7 @@
                 Settings
               </a>
               <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="#">{{ user.email }}</a></li>
+                <li><a class="dropdown-item" href="#">{{ user.username }}</a></li>
                 <li>
                   <hr class="dropdown-divider">
                 </li>
@@ -131,8 +131,6 @@
         <div class="mr-auto">
           <form class="form d-flex">
             <a href="{% url 'account_login' %}" class="btn btn-outline-secondary">Log in</a>
-            
-            <a href="{% url 'account_signup' %}" class="btn btn-primary ms-2">Sign up</a>
 
 
           </form>

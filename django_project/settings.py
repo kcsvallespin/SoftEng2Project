@@ -90,9 +90,9 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "new_shop",
+        "NAME": "postgres",
         "USER": "postgres",
-        "PASSWORD": "admin",
+        "PASSWORD": "123",
         "HOST": "localhost",
         "PORT": "5432",
     }
@@ -202,16 +202,21 @@ ACCOUNT_LOGOUT_REDIRECT_URL = "home"
 
 # https://django-allauth.readthedocs.io/en/latest/installation.html?highlight=backends
 AUTHENTICATION_BACKENDS = (
+    "accounts.auth_backend.BlockedUserBackend",
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 # https://django-allauth.readthedocs.io/en/latest/configuration.html
 ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = "username"
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_UNIQUE_EMAIL = False
+# Do not log in user after signup
+ACCOUNT_LOGIN_ON_SIGNUP = False
+# Redirect to home page after signup
+ACCOUNT_SIGNUP_REDIRECT_URL = "/"
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-trusted-origins
 CSRF_TRUSTED_ORIGINS = [

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create User{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+  <div class="col-md-6 col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="card-title mb-4 text-center">Create New User</h2>
+        {% if message %}
+          <div class="alert alert-info">{{ message }}</div>
+        {% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            {% if form.username %}
+              {{ form.username|as_crispy_field }}
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            {% if form.password1 %}
+              {{ form.password1|as_crispy_field }}
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            {% if form.password2 %}
+              {{ form.password2|as_crispy_field }}
+            {% endif %}
+          </div>
+          <button class="btn btn-primary w-100" type="submit">Create User</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

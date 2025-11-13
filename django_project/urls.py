@@ -3,10 +3,13 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import path, include
 from activitylog.views import view_logs, log_detail
+from accounts.custom_signup_view import CustomSignupView
+from accounts.custom_login_view import CustomLoginView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("accounts/", include("allauth.urls")),
+    path("accounts/login/", CustomLoginView.as_view(), name="account_login"),
+    path("accounts/", include("accounts.allauth_urls")),
     path('inventory/', include('inventory.urls')),
     path('sales/', include('sales.urls')),
     path('accounts/list/', include('accounts.urls')),

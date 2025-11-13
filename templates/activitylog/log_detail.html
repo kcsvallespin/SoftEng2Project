@@ -7,8 +7,8 @@
       <dl class="row">
         <dt class="col-sm-3">Date/Time</dt>
         <dd class="col-sm-9">{{ log.date_time|date:"Y-m-d H:i:s" }}</dd>
-        <dt class="col-sm-3">User</dt>
-        <dd class="col-sm-9">{{ log.user.email }}</dd>
+  <dt class="col-sm-3">User</dt>
+  <dd class="col-sm-9">{{ log.user.username }}</dd>
         <dt class="col-sm-3">Transaction Type</dt>
         <dd class="col-sm-9">{{ log.transaction_type }}</dd>
         <dt class="col-sm-3">Reference ID</dt>
@@ -35,13 +35,21 @@
             <tbody>
               <tr>
                 <td>{{ sale_detail.pk }}</td>
-                <td>{{ sale_detail.user.email }}</td>
+                <td>{{ sale_detail.user.username }}</td>
                 <td>{{ sale_detail.datetime|date:"Y-m-d H:i:s" }}</td>
                 <td>{{ sale_detail.total_price }}</td>
                 <td>{{ sale_detail.invoice_number }}</td>
                 <td>{{ sale_detail.tin }}</td>
                 <td>{{ sale_detail.payment_type }}</td>
               </tr>
+              {% if sale_detail.customer_name or sale_detail.reference_number %}
+              <tr>
+                <td colspan="7">
+                  {% if sale_detail.customer_name %}<strong>Customer Name:</strong> {{ sale_detail.customer_name }}<br>{% endif %}
+                  {% if sale_detail.reference_number %}<strong>Reference Number:</strong> {{ sale_detail.reference_number }}{% endif %}
+                </td>
+              </tr>
+              {% endif %}
             </tbody>
           </table>
         </div>
@@ -190,7 +198,7 @@
           <tbody>
             <tr>
               <td>{{ purchase_detail.id }}</td>
-              <td>{{ purchase_detail.user.email }}</td>
+              <td>{{ purchase_detail.user.username }}</td>
               <td>{{ purchase_detail.datetime|date:"Y-m-d H:i:s" }}</td>
               <td>{{ purchase_detail.total }}</td>
               <td>{{ purchase_detail.invoice_number }}</td>
@@ -208,6 +216,7 @@
               <th>Raw Item Name</th>
               <th>Quantity</th>
               <th>Price</th>
+              <th>Expiration Date</th>
             </tr>
           </thead>
           <tbody>
@@ -216,6 +225,7 @@
               <td>{{ pi.raw_item_name }}</td>
               <td>{{ pi.quantity }}</td>
               <td>{{ pi.price }}</td>
+              <td>{% if pi.expiration_date %}{{ pi.expiration_date }}{% else %}-{% endif %}</td>
             </tr>
             {% endfor %}
           </tbody>

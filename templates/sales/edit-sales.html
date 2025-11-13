@@ -46,6 +46,34 @@
                 </tr>
               </tfoot>
             </table>
+            <hr>
+            <form id="edit-sale-info-form">
+              <div class="mb-2">
+                <label for="customer_name" class="form-label">Customer Name</label>
+                <input type="text" class="form-control" id="customer_name" name="customer_name" maxlength="100" value="{{ sale.customer_name }}" placeholder="Enter customer name">
+              </div>
+              <div class="mb-2">
+                <label for="invoice_number" class="form-label">Invoice Number</label>
+                <input type="text" class="form-control" id="invoice_number" name="invoice_number" maxlength="20" value="{{ sale.invoice_number }}" placeholder="Enter invoice number">
+              </div>
+              <div class="mb-2">
+                <label for="tin" class="form-label">TIN</label>
+                <input type="text" class="form-control" id="tin" name="tin" maxlength="20" value="{{ sale.tin }}" placeholder="Enter TIN">
+              </div>
+              <div class="mb-3">
+                <label for="payment_type" class="form-label">Payment Type</label>
+                <select class="form-select" id="payment_type" name="payment_type" required>
+                  <option value="" disabled>Select payment type</option>
+                  <option value="Cash" {% if sale.payment_type == 'Cash' %}selected{% endif %}>Cash</option>
+                  <option value="Card" {% if sale.payment_type == 'Card' %}selected{% endif %}>Card</option>
+                  <option value="G-Cash" {% if sale.payment_type == 'G-Cash' %}selected{% endif %}>G-Cash</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <label for="reference_number" class="form-label">Reference Number</label>
+                <input type="text" class="form-control" id="reference_number" name="reference_number" maxlength="50" value="{{ sale.reference_number }}" placeholder="Enter reference number">
+              </div>
+            </form>
             <div class="d-flex justify-content-end">
               <button data-sale-id="{{ sale.sale_id }}" type="button" class="btn btn-success btn-lg" onclick="editSale(this.dataset.saleId)">Save Changes</button>
             </div>

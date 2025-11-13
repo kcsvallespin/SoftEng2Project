@@ -55,6 +55,7 @@ class StoreroomItem(models.Model):
     raw_item_id = models.IntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.DecimalField(max_digits=10, decimal_places=2)
+    expiration_date = models.DateField(null=True, blank=True)
     display = models.BooleanField(default=True)
 
 class Transfer(models.Model):

@@ -28,13 +28,27 @@ function editSale(saleId) {
         return;
     }
     if (!confirm('Save changes to this sale?')) return;
+    // Collect transaction fields
+    const invoice_number = document.getElementById('invoice_number').value;
+    const tin = document.getElementById('tin').value;
+    const payment_type = document.getElementById('payment_type').value;
+    const customer_name = document.getElementById('customer_name').value;
+    const reference_number = document.getElementById('reference_number') ? document.getElementById('reference_number').value : '';
+    const payload = {
+        items: items,
+        invoice_number: invoice_number,
+        tin: tin,
+        payment_type: payment_type,
+        customer_name: customer_name,
+        reference_number: reference_number
+    };
     fetch(editSaleUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken,
         },
-        body: JSON.stringify(items)
+        body: JSON.stringify(payload)
     })
     .then(response => response.json())
     .then(data => {
@@ -77,15 +91,19 @@ function createSale() {
     if (!confirmation) {
         return;
     }
-    // Collect invoice_number, tin, payment_type from form
+    // Collect invoice_number, tin, payment_type, customer_name, reference_number from form
     const invoice_number = document.getElementById('invoice_number').value;
     const tin = document.getElementById('tin').value;
     const payment_type = document.getElementById('payment_type').value;
+    const customer_name = document.getElementById('customer_name').value;
+    const reference_number = document.getElementById('reference_number') ? document.getElementById('reference_number').value : '';
     const payload = {
         items: selectedItems,
         invoice_number: invoice_number,
         tin: tin,
-        payment_type: payment_type
+        payment_type: payment_type,
+        customer_name: customer_name,
+        reference_number: reference_number
     };
     console.log('Submitting sale with payload: ', payload);
     fetch(createSaleUrl, {
@@ -152,6 +170,11 @@ function fetchSaleById(saleId) {
             window.summary += `${item.quantity}x ${item.category_name}  ---------- Php ${item.price.toFixed(2)}\n`;
         }
         window.summary += `\nTotal: Php ${data.total_price.toFixed(2)}`;
+        var totalElem = document.getElementById('order-summary-total');
+        if (totalElem) {
+            totalElem.textContent = data.total_price.toFixed(2);
+            totalElem.style.display = '';
+        }
     })
     .catch(error => {
         console.error('Error: ', error);

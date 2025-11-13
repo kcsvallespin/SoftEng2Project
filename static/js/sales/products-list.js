@@ -74,4 +74,9 @@ function collectSelectedItems(dialogId) {
         summaryHtml += `</tbody><tfoot><tr><th colspan="3" class="text-end">Total</th><th>₱${orderTotal.toFixed(2)}</th></tr></tfoot></table>`;
     }
     document.getElementById('order-summary').innerHTML = summaryHtml;
+    var totalElem = document.getElementById('order-summary-total');
+    if (totalElem) {
+        totalElem.textContent = orderTotal.toFixed(2);
+        totalElem.style.display = '';
+    }
 }
